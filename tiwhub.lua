@@ -8,7 +8,7 @@ local HS=game:GetService("HttpService")
 local LP=P.LocalPlayer
 local PG=LP:WaitForChild("PlayerGui")
 local PID=game.PlaceId
-local FILE="TiwHub_" .. PID .. ".json"
+local FILE="TiwHub_" .. game.GameId .. ".json"
 local MAPS={
 [2753915549]={n="Blox Fruits - Sea 1",t="บล็อกฟรุ๊ต - ซี 1",bf=true},
 [4442272183]={n="Blox Fruits - Sea 2",t="บล็อกฟรุ๊ต - ซี 2",bf=true},
@@ -37,17 +37,31 @@ task.delay(5,function() warnGui:Destroy() end)
 warn("[TiwHub] Blox Fruits only. Unsupported PlaceId: " .. PID)
 return
 end
-local DEF={scale=0.75,accent="Purple",lang="ไทย",hud=false,sHud=false,boost=false,fovOn=false,fov=70,key="RightShift",notes="",wish="",c1=false,c2=false,c3=false,c4=false,c5=false,c6=false}
+local DEF={scale=0.75,accent="Purple",lang="ไทย",hud=false,sHud=false,boost=false,fovOn=false,fov=70,key="RightShift"}
 local CF,SV={},{}
 for k,v in pairs(DEF) do CF[k]=v end
+local function ReadSaved()
+local raw
+pcall(function() if isfile and readfile and isfile(FILE) then raw=readfile(FILE) end end)
+if not raw then pcall(function() if getgenv and getgenv().TiwHubSaved then raw=getgenv().TiwHubSaved[FILE] end end) end
+return raw
+end
 local function Load()
+local raw=ReadSaved()
+if not raw then return false end
 return (pcall(function()
-if not (isfile and readfile and isfile(FILE)) then error("nofile") end
-for k,v in pairs(HS:JSONDecode(readfile(FILE))) do
+for k,v in pairs(HS:JSONDecode(raw)) do
 if DEF[k]~=nil and type(v)==type(DEF[k]) then CF[k]=v;SV[k]=true end
 end
 end))
 end
+local function DetectMode()
+local m=nil
+pcall(function() if isfile and isfile(FILE) then m="file" end end)
+if not m then pcall(function() if getgenv and getgenv().TiwHubSaved and getgenv().TiwHubSaved[FILE] then m="mem" end end) end
+return m
+end
+local saveMode=DetectMode()
 Load()
 local function T(en,th) return CF.lang=="English" and en or th end
 local loc={}
@@ -273,16 +287,61 @@ o.set(opts[n % #opts+1])
 end)
 CT[key]=o
 end
-local orig=nil
-local function Boost(on)
+local Boost
+do
+local BX={on=false,job=0,sv=nil,fx=setmetatable({},{__mode="k"}),conn=nil}
+local FXC={ParticleEmitter=true,Trail=true,Beam=true,Smoke=true,Fire=true,Sparkles=true}
+local PPC={BloomEffect=true,BlurEffect=true,DepthOfFieldEffect=true,SunRaysEffect=true}
+local function KillFx(o)
+if FXC[o.ClassName] and o.Enabled then BX.fx[o]=true;o.Enabled=false end
+end
+function Boost(on)
 if on then
-if not orig then orig={s=LT.GlobalShadows};pcall(function() orig.q=settings().Rendering.QualityLevel end) end
+if BX.on then return end
+BX.on=true;BX.job=BX.job+1
+local job=BX.job
+local sv={pp={}}
+BX.sv=sv
+BX.fx=setmetatable({},{__mode="k"})
+pcall(function() sv.sh=LT.GlobalShadows end)
+pcall(function() sv.q=settings().Rendering.QualityLevel end)
 pcall(function() LT.GlobalShadows=false end)
 pcall(function() settings().Rendering.QualityLevel=Enum.QualityLevel.Level01 end)
-elseif orig then
-pcall(function() LT.GlobalShadows=orig.s end)
-if orig.q then pcall(function() settings().Rendering.QualityLevel=orig.q end) end
-orig=nil
+pcall(function()
+for _,o in ipairs(LT:GetChildren()) do
+if PPC[o.ClassName] and o.Enabled then sv.pp[#sv.pp+1]=o;o.Enabled=false end
+end
+end)
+pcall(function()
+local t=workspace.Terrain
+sv.w={t.WaterWaveSize,t.WaterWaveSpeed,t.WaterReflectance}
+t.WaterWaveSize=0;t.WaterWaveSpeed=0;t.WaterReflectance=0
+end)
+BX.conn=workspace.DescendantAdded:Connect(function(o) pcall(KillFx,o) end)
+task.spawn(function()
+local n=0
+for _,o in ipairs(workspace:GetDescendants()) do
+if not BX.on or BX.job~=job then return end
+pcall(KillFx,o)
+n=n+1
+if n%400==0 then task.wait() end
+end
+end)
+else
+if not BX.on then return end
+BX.on=false;BX.job=BX.job+1
+if BX.conn then BX.conn:Disconnect();BX.conn=nil end
+local sv=BX.sv
+if sv then
+if sv.sh~=nil then pcall(function() LT.GlobalShadows=sv.sh end) end
+if sv.q then pcall(function() settings().Rendering.QualityLevel=sv.q end) end
+for _,o in ipairs(sv.pp) do pcall(function() o.Enabled=true end) end
+if sv.w then pcall(function() local t=workspace.Terrain;t.WaterWaveSize=sv.w[1];t.WaterWaveSpeed=sv.w[2];t.WaterReflectance=sv.w[3] end) end
+end
+for o in pairs(BX.fx) do pcall(function() o.Enabled=true end) end
+BX.fx=setmetatable({},{__mode="k"})
+BX.sv=nil
+end
 end
 end
 local fov0=workspace.CurrentCamera and workspace.CurrentCamera.FieldOfView or 70
@@ -326,6 +385,13 @@ end)
 return out,ord
 end
 local function Clock(s) s=math.floor(s);return string.format("%02d:%02d:%02d",math.floor(s/3600),math.floor(s % 3600/60),s % 60) end
+local function Dur(s)
+s=math.floor(s)
+local h=math.floor(s/3600)
+local m=math.floor(s % 3600/60)
+if h>0 then return h .. T(" h "," ชั่วโมง ") .. m .. T(" min"," นาที") end
+return m .. T(" min "," นาที ") .. (s % 60) .. T(" sec"," วินาที")
+end
 local function GetPing()
 local p=0
 pcall(function() p=math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()) end)
@@ -337,12 +403,12 @@ R(hud,6);St(hud,1)
 local shud=N("TextLabel",{Size=UDim2.fromOffset(170,0),AutomaticSize=Enum.AutomaticSize.Y,Position=UDim2.fromOffset(10,42),BackgroundColor3=PN,BackgroundTransparency=0.15,Text="",TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextWrapped=true,Visible=false},gui)
 R(shud,6);St(shud,1)
 local TB={}
-TB.Map,TB.Pl,TB.Sess,TB.Srv,TB.Maps,TB.UI,TB.Perf,TB.Cfg,TB.Tool,TB.Note,TB.Chk,TB.Tmr,TB.Wish=Tab("Map","แมพนี้"),Tab("Players","ผู้เล่น"),Tab("Session","สถิติรอบนี้"),Tab("Server","เซิร์ฟเวอร์"),Tab("Supported Maps","แมพที่รองรับ"),Tab("Interface","หน้าตา/ภาษา"),Tab("Performance","ประสิทธิภาพ"),Tab("Config","ตั้งค่า"),Tab("Tools","เครื่องมือ"),Tab("Notes","โน้ต"),Tab("Checklist","เช็คลิสต์"),Tab("Timer","จับเวลา"),Tab("Wishlist","อยากได้")
+TB.Map,TB.Pl,TB.Sess,TB.UI,TB.Perf,TB.Cfg,TB.Tool=Tab("Map","แมพนี้"),Tab("Players","ผู้เล่น"),Tab("Session","สถิติรอบนี้"),Tab("Interface","หน้าตา/ภาษา"),Tab("Performance","ประสิทธิภาพ"),Tab("Remember settings","จดจำการตั้งค่า"),Tab("Tools","เครื่องมือ")
 Sec(TB.Map,"Current map","แมพปัจจุบัน")
 local mapName=Dyn(TB.Map,30)
 mapName.TextColor3=TX
 Lbl(TB.Map,"PlaceId: " .. PID,"PlaceId: " .. PID)
-Lbl(TB.Map,"Settings are saved per map: " .. FILE,"การตั้งค่าบันทึกแยกตามแมพ: " .. FILE)
+Lbl(TB.Map,"Settings file: " .. FILE,"ไฟล์การตั้งค่า: " .. FILE)
 Sec(TB.Map,"Live info","ข้อมูลสด")
 local live=Dyn(TB.Map,58)
 Sec(TB.Map,"My stats (read-only)","สถานะของฉัน (อ่านอย่างเดียว)")
@@ -359,7 +425,7 @@ for _,r in ipairs(plRows) do r:Destroy() end
 plRows={}
 local list=P:GetPlayers()
 table.sort(list,function(a,b) return a.Name:lower()<b.Name:lower() end)
-plCount.Text=T("Total: ","ทั้งหมด: ") .. #list .. "/" .. P.MaxPlayers
+plCount.Text=T("Players in this map: ","ผู้เล่นในแมพนี้: ") .. #list .. T(" (max "," คน (สูงสุด ") .. P.MaxPlayers .. ")"
 for _,pl in ipairs(list) do
 local r=Row(TB.Pl,32)
 local b=N("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,TextTruncate=Enum.TextTruncate.AtEnd,Text="  " .. pl.DisplayName .. " (@" .. pl.Name .. ")  ·  " .. pl.AccountAge .. T(" days"," วัน")},r)
@@ -393,33 +459,6 @@ end
 return table.concat(lines,"\n")
 end
 
--- NEW: Server tab
-Sec(TB.Srv,"Server info","ข้อมูลเซิร์ฟเวอร์")
-local srv=Dyn(TB.Srv,160)
-local placeName=MAP and MAP.n or "-"
-task.spawn(function()
-local ok,info=pcall(function() return game:GetService("MarketplaceService"):GetProductInfo(PID) end)
-if ok and info and info.Name then placeName=info.Name end
-end)
-local function ServerText()
-local jid=game.JobId~="" and game.JobId or "-"
-return T("Game: ","เกม: ") .. placeName .. "\nPlaceId: " .. PID .. "\nJobId: " .. jid .. "\n" .. T("Players: ","ผู้เล่น: ") .. #P:GetPlayers() .. "/" .. P.MaxPlayers .. "\n" .. T("Server time: ","เวลาเซิร์ฟเวอร์: ") .. Clock(workspace.DistributedGameTime) .. "\nPing: " .. GetPing() .. " ms\n" .. T("Account age: ","อายุบัญชี: ") .. LP.AccountAge .. T(" days"," วัน")
-end
-Btn(TB.Srv,"Copy JobId","คัดลอก JobId",function() Copy(game.JobId) end)
-Btn(TB.Srv,"Copy PlaceId","คัดลอก PlaceId",function() Copy(tostring(PID)) end)
-
-Sec(TB.Maps,"What each map menu provides","แต่ละแมพมีเมนูอะไรให้ปรับบ้าง")
-do
-local ids={}
-for id in pairs(MAPS) do ids[#ids+1]=id end
-table.sort(ids)
-for _,id in ipairs(ids) do
-local m=MAPS[id]
-local mark=(id==PID) and "▶ " or "• "
-local extra=m.bf and "Level/Beli/Fragments" or "leaderstats"
-Lbl(TB.Maps,mark .. m.n .. "  [" .. extra .. "]",mark .. m.t .. "  [" .. extra .. "]")
-end
-end
 Sec(TB.UI,"Language","ภาษา")
 Dd(TB.UI,"lang","Language","ภาษา",{"ไทย","English"},function() SetLang();RefreshPlayers() end)
 Sec(TB.UI,"Window","หน้าต่าง")
@@ -429,23 +468,61 @@ Dd(TB.UI,"accent","Theme color","สีธีม",AN,Recolor)
 Sec(TB.UI,"HUD","แสดงบนหน้าจอ")
 Tog(TB.UI,"hud","Show FPS / Ping","แสดง FPS / Ping",function(on) hud.Visible=on end)
 Sec(TB.Perf,"Graphics","กราฟิก")
-Tog(TB.Perf,"boost","Low-lag mode (no shadows, lowest quality)","โหมดลดแลค (ปิดเงา + กราฟิกต่ำสุด)",function(on)
-Boost(on);Toast(on and "Low-lag mode on" or "Graphics restored",on and "เปิดโหมดลดแลค" or "คืนค่ากราฟิกแล้ว")
+Tog(TB.Perf,"boost","Low-lag mode","โหมดลดแลค",function(on)
+Boost(on);Toast(on and "Low-lag mode on" or "Graphics restored",on and "เปิดโหมดลดแลคแล้ว" or "คืนค่ากราฟิกแล้ว")
 end)
+Lbl(TB.Perf,"Turns off shadows, particle/skill effects, blur/bloom and water waves, and sets lowest graphics. Affects only your screen.","ปิดเงา เอฟเฟกต์สกิล/อนุภาค เบลอ/บลูม คลื่นน้ำ และลดกราฟิกต่ำสุด เห็นผลเฉพาะบนหน้าจอคุณ")
 Sec(TB.Perf,"Camera","กล้อง")
 Tog(TB.Perf,"fovOn","Use custom FOV","ใช้ FOV ที่กำหนดเอง",function(on)
 if not on and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
 end)
-Sld(TB.Perf,"fov","FOV","ค่า FOV",30,120,1,function() end)
-Sec(TB.Cfg,"Config (this map)","การตั้งค่า (แมพนี้)")
-Btn(TB.Cfg,"Save settings","บันทึกการตั้งค่า",function()
-local ok=writefile and pcall(function() writefile(FILE,HS:JSONEncode(CF)) end)
-Toast(ok and "Saved" or "Can't save (no writefile)",ok and "บันทึกเรียบร้อย" or "บันทึกไม่ได้ (ไม่รองรับ writefile)")
+Sld(TB.Perf,"fov","FOV","ค่า FOV",30,120,1,function() end)Sec(TB.Cfg,"Remember settings","จดจำการตั้งค่า")
+local cfgLbl=Dyn(TB.Cfg,56)
+local function SaveStatusText()
+if saveMode=="file" then return T("Status: remembered ✓ (saved to a file, works after reopening the game)","สถานะ: จดจำแล้ว ✓ (บันทึกลงไฟล์ ใช้ได้แม้ปิดเกมแล้วเปิดใหม่)") end
+if saveMode=="mem" then return T("Status: remembered temporarily (this executor can't write files, kept until you close the executor)","สถานะ: จดจำชั่วคราว (executor นี้เขียนไฟล์ไม่ได้ จะจำจนกว่าจะปิด executor)") end
+return T("Status: nothing remembered yet","สถานะ: ยังไม่ได้จดจำ")
+end
+Btn(TB.Cfg,"Remember my settings now","จดจำการตั้งค่าตอนนี้",function()
+local json
+pcall(function() json=HS:JSONEncode(CF) end)
+if not json then Toast("Couldn't save settings","จดจำไม่สำเร็จ");return end
+local mode=nil
+if writefile then
+local ok=pcall(writefile,FILE,json)
+if ok then
+local back
+pcall(function() back=isfile and readfile and isfile(FILE) and readfile(FILE) end)
+if back==nil or back==json then mode="file" end
+end
+end
+if not mode then
+pcall(function()
+local g=getgenv()
+g.TiwHubSaved=g.TiwHubSaved or {}
+g.TiwHubSaved[FILE]=json
+mode="mem"
 end)
-Btn(TB.Cfg,"Load settings","โหลดการตั้งค่า",function()
-if Load() then for k,c in pairs(CT) do c.set(CF[k]) end;SetLang();Toast("Loaded","โหลดเรียบร้อย")
-else Toast("No saved file","ไม่พบไฟล์ที่บันทึกไว้") end
+end
+saveMode=mode or saveMode
+if mode=="file" then Toast("Settings remembered (saved to file)","จดจำการตั้งค่าแล้ว (บันทึกลงไฟล์)")
+elseif mode=="mem" then Toast("Remembered temporarily (no file support)","จดจำชั่วคราว (executor ไม่รองรับไฟล์)")
+else Toast("Couldn't save settings","จดจำไม่สำเร็จ") end
 end)
+Btn(TB.Cfg,"Apply remembered settings","ใช้ค่าที่จดจำไว้",function()
+if Load() then
+for k,c in pairs(CT) do c.set(CF[k]) end
+SetLang()
+Toast("Remembered settings applied","ใช้ค่าที่จดจำไว้แล้ว")
+else Toast("Nothing remembered yet","ยังไม่มีค่าที่จดจำไว้") end
+end)
+Btn(TB.Cfg,"Forget remembered settings","ลบค่าที่จดจำไว้",function()
+pcall(function() if delfile and isfile and isfile(FILE) then delfile(FILE) end end)
+pcall(function() if getgenv and getgenv().TiwHubSaved then getgenv().TiwHubSaved[FILE]=nil end end)
+saveMode=DetectMode()
+Toast("Remembered settings cleared","ลบค่าที่จดจำไว้แล้ว")
+end)
+Lbl(TB.Cfg,"Remembered settings load automatically the next time you run the script","ค่าที่จดจำไว้จะถูกโหลดอัตโนมัติเมื่อรันสคริปต์ครั้งต่อไป")
 Sec(TB.Tool,"Server","เซิร์ฟเวอร์")
 Btn(TB.Tool,"Rejoin (same server)","Rejoin (เซิร์ฟเวอร์เดิม)",function() pcall(function() game:GetService("TeleportService"):TeleportToPlaceInstance(PID,game.JobId,LP) end) end)
 Sec(TB.Tool,"Script","สคริปต์")
@@ -455,70 +532,6 @@ Boost(false)
 if workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
 gui:Destroy()
 end)
-
--- NEW: Notes tab
-Sec(TB.Note,"My notes (saved with settings)","โน้ตของฉัน (บันทึกพร้อมการตั้งค่า)")
-do
-local nr=Row(TB.Note,180)
-local nb=N("TextBox",{Size=UDim2.new(1,-16,1,-16),Position=UDim2.fromOffset(8,8),BackgroundColor3=DK,BorderSizePixel=0,Text=CF.notes,PlaceholderText=T("Type here...","พิมพ์ที่นี่..."),PlaceholderColor3=SB,TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextWrapped=true,MultiLine=true,ClearTextOnFocus=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top},nr)
-R(nb,6)
-N("UIPadding",{PaddingLeft=UDim.new(0,8),PaddingRight=UDim.new(0,8),PaddingTop=UDim.new(0,6),PaddingBottom=UDim.new(0,6)},nb)
-nb:GetPropertyChangedSignal("Text"):Connect(function() CF.notes=nb.Text end)
-CT.notes={set=function(v) CF.notes=v;nb.Text=v end,apply=function() end}
-Btn(TB.Note,"Clear notes","ล้างโน้ต",function() nb.Text="" end)
-end
-
--- NEW: Checklist tab (edit CHECKLIST to rename items; keys c1..c6 are saved in settings)
-do
-Sec(TB.Chk,"Daily checklist","เช็คลิสต์ประจำวัน")
-local CHECKLIST={
-{"c1","Daily quests","เควสประจำวัน"},
-{"c2","Boss hunt","ล่าบอส"},
-{"c3","Raid","ลงเรด"},
-{"c4","Weapon / fruit mastery","มาสเตอรี่อาวุธ / ผลไม้"},
-{"c5","Check fruit stock","เช็คร้านผลไม้"},
-{"c6","Sea events","อีเวนต์ทะเล"},
-}
-for _,c in ipairs(CHECKLIST) do Tog(TB.Chk,c[1],c[2],c[3],function() end) end
-Btn(TB.Chk,"Reset checklist","รีเซ็ตเช็คลิสต์",function()
-for _,c in ipairs(CHECKLIST) do CT[c[1]].set(false,true) end
-end)
-Lbl(TB.Chk,"Rename items in the CHECKLIST table in the script","แก้ชื่อรายการได้ที่ตาราง CHECKLIST ในสคริปต์")
-end
-
--- NEW: Timer tab
-Sec(TB.Tmr,"Reminder timer","ตัวจับเวลาเตือน")
-local tmr=Dyn(TB.Tmr,34)
-local tEnd,tLen=nil,0
-local function StartTimer(m)
-tEnd=os.clock()+m*60;tLen=m
-Toast("Timer started: " .. m .. " min","เริ่มจับเวลา " .. m .. " นาที")
-end
-local function TimerText()
-if not tEnd then return T("No timer running","ไม่มีตัวจับเวลา") end
-local left=tEnd - os.clock()
-if left<=0 then
-tEnd=nil
-Toast("Time's up! (" .. tLen .. " min)","หมดเวลา! (" .. tLen .. " นาที)")
-return T("Time's up!","หมดเวลาแล้ว!")
-end
-return T("Remaining: ","เหลือ: ") .. Clock(left)
-end
-Btn(TB.Tmr,"Start 5 minutes","เริ่ม 5 นาที",function() StartTimer(5) end)
-Btn(TB.Tmr,"Start 10 minutes","เริ่ม 10 นาที",function() StartTimer(10) end)
-Btn(TB.Tmr,"Start 30 minutes","เริ่ม 30 นาที",function() StartTimer(30) end)
-Btn(TB.Tmr,"Stop timer","หยุดจับเวลา",function() tEnd=nil end)
-
--- NEW: Wishlist tab
-Sec(TB.Wish,"Fruits / swords I want","ผลไม้ / ดาบที่อยากได้")
-do
-local wr=Row(TB.Wish,180)
-local wb=N("TextBox",{Size=UDim2.new(1,-16,1,-16),Position=UDim2.fromOffset(8,8),BackgroundColor3=DK,BorderSizePixel=0,Text=CF.wish,PlaceholderText=T("One item per line...","หนึ่งบรรทัดต่อหนึ่งรายการ..."),PlaceholderColor3=SB,TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextWrapped=true,MultiLine=true,ClearTextOnFocus=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top},wr)
-R(wb,6)
-N("UIPadding",{PaddingLeft=UDim.new(0,8),PaddingRight=UDim.new(0,8),PaddingTop=UDim.new(0,6),PaddingBottom=UDim.new(0,6)},wb)
-wb:GetPropertyChangedSignal("Text"):Connect(function() CF.wish=wb.Text end)
-CT.wish={set=function(v) CF.wish=v;wb.Text=v end,apply=function() end}
-end
 
 local ac,fr,a2=0,0,1
 cn[#cn+1]=RS.RenderStepped:Connect(function(dt)
@@ -537,13 +550,12 @@ end
 if a2>=1 then
 a2=0
 mapName.Text=T(MAP.n,MAP.t)
-live.Text=T("Players: ","ผู้เล่น: ") .. #P:GetPlayers() .. "/" .. P.MaxPlayers .. "\n" .. T("Server time: ","เวลาเซิร์ฟเวอร์: ") .. Clock(workspace.DistributedGameTime)
+live.Text=T("Players: ","ผู้เล่น: ") .. #P:GetPlayers() .. "/" .. P.MaxPlayers .. "\n" .. T("Server online for: ","เซิร์ฟเวอร์นี้ออนมาแล้ว: ") .. Dur(workspace.DistributedGameTime)
 local s=StatText()
 stat.Text=s
 shud.Text=" " .. s:gsub("\n","\n ")
 sess.Text=SessionText()
-srv.Text=ServerText()
-tmr.Text=TimerText()
+cfgLbl.Text=SaveStatusText()
 end
 end)
 local function Toggle() win.Visible=not win.Visible end
