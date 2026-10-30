@@ -15,6 +15,7 @@ local MAPS={
 [7449423635]={n="Blox Fruits - Sea 3",t="บล็อกฟรุ๊ต - ซี 3",bf=true},
 }
 local MAP=MAPS[PID]
+if not MAP and game.GameId==994732206 then MAP={n="Blox Fruits (ID " .. PID .. ")",t="บล็อกฟรุ๊ต (ID " .. PID .. ")",bf=true} end
 if not MAP then
 local warnGui=Instance.new("ScreenGui")
 warnGui.Name="TiwHubNotice"
