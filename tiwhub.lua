@@ -493,7 +493,7 @@ local d=cur[nm] - S.base[nm]
 lines[#lines+1]=nm .. ": " .. cur[nm] .. "  (" .. (d>=0 and "+" or "") .. d .. ")"
 end
 return table.concat(lines,"\n")
-endSec(TB.UI,"Language","ภาษา")
+end Sec(TB.UI,"Language","ภาษา")
 Dd(TB.UI,"lang","Language","ภาษา",{"ไทย","English"},function() SetLang();RefreshPlayers() end)
 Sec(TB.UI,"Window","หน้าต่าง")
 Sld(TB.UI,"scale","Window size","ขนาดหน้าต่าง",0.5,1.2,0.05,function(v) Tw(ws,{Scale=v}) end)
