@@ -289,11 +289,25 @@ CT[key]=o
 end
 local Boost
 do
-local BX={on=false,job=0,sv=nil,fx=setmetatable({},{__mode="k"}),conn=nil}
-local FXC={ParticleEmitter=true,Trail=true,Beam=true,Smoke=true,Fire=true,Sparkles=true}
+local BX={on=false,job=0,sv=nil,fx=nil,orig=nil,conn=nil}
+local FXC={ParticleEmitter=true,Trail=true,Beam=true,Smoke=true,Fire=true,Sparkles=true,PointLight=true,SpotLight=true,SurfaceLight=true}
 local PPC={BloomEffect=true,BlurEffect=true,DepthOfFieldEffect=true,SunRaysEffect=true}
-local function KillFx(o)
-if FXC[o.ClassName] and o.Enabled then BX.fx[o]=true;o.Enabled=false end
+local function Lite(o)
+local c=o.ClassName
+if FXC[c] then
+if o.Enabled then BX.fx[o]=true;o.Enabled=false end
+elseif c=="Decal" or c=="Texture" then
+if not BX.orig[o] then BX.orig[o]={t=o.Transparency};o.Transparency=1 end
+elseif o:IsA("BasePart") and c~="Terrain" then
+if not BX.orig[o] then
+local isMesh=o:IsA("MeshPart")
+BX.orig[o]={m=o.Material,r=o.Reflectance,c=o.CastShadow,f=isMesh and o.RenderFidelity or nil}
+o.Material=Enum.Material.SmoothPlastic
+o.Reflectance=0
+o.CastShadow=false
+if isMesh then o.RenderFidelity=Enum.RenderFidelity.Performance end
+end
+end
 end
 function Boost(on)
 if on then
@@ -303,10 +317,13 @@ local job=BX.job
 local sv={pp={}}
 BX.sv=sv
 BX.fx=setmetatable({},{__mode="k"})
+BX.orig=setmetatable({},{__mode="k"})
 pcall(function() sv.sh=LT.GlobalShadows end)
 pcall(function() sv.q=settings().Rendering.QualityLevel end)
+pcall(function() sv.md=settings().Rendering.MeshPartDetailLevel end)
 pcall(function() LT.GlobalShadows=false end)
 pcall(function() settings().Rendering.QualityLevel=Enum.QualityLevel.Level01 end)
+pcall(function() settings().Rendering.MeshPartDetailLevel=Enum.MeshPartDetailLevel.Level04 end)
 pcall(function()
 for _,o in ipairs(LT:GetChildren()) do
 if PPC[o.ClassName] and o.Enabled then sv.pp[#sv.pp+1]=o;o.Enabled=false end
@@ -316,31 +333,50 @@ pcall(function()
 local t=workspace.Terrain
 sv.w={t.WaterWaveSize,t.WaterWaveSpeed,t.WaterReflectance}
 t.WaterWaveSize=0;t.WaterWaveSpeed=0;t.WaterReflectance=0
+local cl=t:FindFirstChildOfClass("Clouds")
+if cl and cl.Enabled then sv.cl=cl;cl.Enabled=false end
 end)
-BX.conn=workspace.DescendantAdded:Connect(function(o) pcall(KillFx,o) end)
+BX.conn=workspace.DescendantAdded:Connect(function(o) pcall(Lite,o) end)
 task.spawn(function()
 local n=0
 for _,o in ipairs(workspace:GetDescendants()) do
 if not BX.on or BX.job~=job then return end
-pcall(KillFx,o)
+pcall(Lite,o)
 n=n+1
-if n%400==0 then task.wait() end
+if n%250==0 then task.wait() end
 end
 end)
 else
 if not BX.on then return end
 BX.on=false;BX.job=BX.job+1
 if BX.conn then BX.conn:Disconnect();BX.conn=nil end
-local sv=BX.sv
+local sv,orig,fx=BX.sv,BX.orig,BX.fx
+BX.sv,BX.orig,BX.fx=nil,nil,nil
 if sv then
 if sv.sh~=nil then pcall(function() LT.GlobalShadows=sv.sh end) end
 if sv.q then pcall(function() settings().Rendering.QualityLevel=sv.q end) end
+if sv.md then pcall(function() settings().Rendering.MeshPartDetailLevel=sv.md end) end
 for _,o in ipairs(sv.pp) do pcall(function() o.Enabled=true end) end
+if sv.cl then pcall(function() sv.cl.Enabled=true end) end
 if sv.w then pcall(function() local t=workspace.Terrain;t.WaterWaveSize=sv.w[1];t.WaterWaveSpeed=sv.w[2];t.WaterReflectance=sv.w[3] end) end
 end
-for o in pairs(BX.fx) do pcall(function() o.Enabled=true end) end
-BX.fx=setmetatable({},{__mode="k"})
-BX.sv=nil
+task.spawn(function()
+local n=0
+if fx then for o in pairs(fx) do pcall(function() o.Enabled=true end) end end
+if orig then
+for o,v in pairs(orig) do
+pcall(function()
+if v.t~=nil then o.Transparency=v.t
+else
+o.Material=v.m;o.Reflectance=v.r;o.CastShadow=v.c
+if v.f then o.RenderFidelity=v.f end
+end
+end)
+n=n+1
+if n%250==0 then task.wait() end
+end
+end
+end)
 end
 end
 end
@@ -457,9 +493,7 @@ local d=cur[nm] - S.base[nm]
 lines[#lines+1]=nm .. ": " .. cur[nm] .. "  (" .. (d>=0 and "+" or "") .. d .. ")"
 end
 return table.concat(lines,"\n")
-end
-
-Sec(TB.UI,"Language","ภาษา")
+endSec(TB.UI,"Language","ภาษา")
 Dd(TB.UI,"lang","Language","ภาษา",{"ไทย","English"},function() SetLang();RefreshPlayers() end)
 Sec(TB.UI,"Window","หน้าต่าง")
 Sld(TB.UI,"scale","Window size","ขนาดหน้าต่าง",0.5,1.2,0.05,function(v) Tw(ws,{Scale=v}) end)
@@ -471,12 +505,13 @@ Sec(TB.Perf,"Graphics","กราฟิก")
 Tog(TB.Perf,"boost","Low-lag mode","โหมดลดแลค",function(on)
 Boost(on);Toast(on and "Low-lag mode on" or "Graphics restored",on and "เปิดโหมดลดแลคแล้ว" or "คืนค่ากราฟิกแล้ว")
 end)
-Lbl(TB.Perf,"Turns off shadows, particle/skill effects, blur/bloom and water waves, and sets lowest graphics. Affects only your screen.","ปิดเงา เอฟเฟกต์สกิล/อนุภาค เบลอ/บลูม คลื่นน้ำ และลดกราฟิกต่ำสุด เห็นผลเฉพาะบนหน้าจอคุณ")
+Lbl(TB.Perf,"Turns off shadows, effects, lights, blur/bloom, clouds and water waves, makes materials plain and hides textures. Only on your screen; the world will look flat.","ปิดเงา เอฟเฟกต์ แสงไฟ เบลอ/บลูม เมฆ คลื่นน้ำ ทำให้พื้นผิวเรียบและซ่อนลวดลาย เห็นผลเฉพาะบนหน้าจอคุณ โลกจะดูเรียบขึ้น")
 Sec(TB.Perf,"Camera","กล้อง")
 Tog(TB.Perf,"fovOn","Use custom FOV","ใช้ FOV ที่กำหนดเอง",function(on)
 if not on and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
 end)
-Sld(TB.Perf,"fov","FOV","ค่า FOV",30,120,1,function() end)Sec(TB.Cfg,"Remember settings","จดจำการตั้งค่า")
+Sld(TB.Perf,"fov","FOV","ค่า FOV",30,120,1,function() end)
+Sec(TB.Cfg,"Remember settings","จดจำการตั้งค่า")
 local cfgLbl=Dyn(TB.Cfg,56)
 local function SaveStatusText()
 if saveMode=="file" then return T("Status: remembered ✓ (saved to a file, works after reopening the game)","สถานะ: จดจำแล้ว ✓ (บันทึกลงไฟล์ ใช้ได้แม้ปิดเกมแล้วเปิดใหม่)") end
@@ -531,9 +566,7 @@ for _,c in ipairs(cn) do c:Disconnect() end
 Boost(false)
 if workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
 gui:Destroy()
-end)
-
-local ac,fr,a2=0,0,1
+end)local ac,fr,a2=0,0,1
 cn[#cn+1]=RS.RenderStepped:Connect(function(dt)
 if CF.fovOn and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=CF.fov end
 ac=ac+dt;fr=fr+1;a2=a2+dt
