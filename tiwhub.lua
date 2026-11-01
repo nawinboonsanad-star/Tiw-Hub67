@@ -1,4 +1,4 @@
-Print("[TiwHub] Full All-in-One Script Loaded")
+print("[TiwHub] Full All-in-One Script Loaded")
 local P=game:GetService("Players")
 local UIS=game:GetService("UserInputService")
 local TS=game:GetService("TweenService")
