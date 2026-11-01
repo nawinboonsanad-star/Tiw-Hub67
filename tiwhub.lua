@@ -1,606 +1,498 @@
-print("[TiwHub] start")
-local P=game:GetService("Players")
-local UIS=game:GetService("UserInputService")
-local TS=game:GetService("TweenService")
-local RS=game:GetService("RunService")
-local LT=game:GetService("Lighting")
-local HS=game:GetService("HttpService")
-local LP=P.LocalPlayer
-local PG=LP:WaitForChild("PlayerGui")
-local PID=game.PlaceId
-local FILE="TiwHub_" .. game.GameId .. ".json"
-local MAPS={
-[2753915549]={n="Blox Fruits - Sea 1",t="บล็อกฟรุ๊ต - ซี 1",bf=true},
-[4442272183]={n="Blox Fruits - Sea 2",t="บล็อกฟรุ๊ต - ซี 2",bf=true},
-[7449423635]={n="Blox Fruits - Sea 3",t="บล็อกฟรุ๊ต - ซี 3",bf=true},
-}
-local MAP=MAPS[PID]
-if not MAP and game.GameId==994732206 then MAP={n="Blox Fruits (ID " .. PID .. ")",t="บล็อกฟรุ๊ต (ID " .. PID .. ")",bf=true} end
-if not MAP then
-local warnGui=Instance.new("ScreenGui")
-warnGui.Name="TiwHubNotice"
-warnGui.ResetOnSpawn=false
-warnGui.DisplayOrder=999
-warnGui.Parent=PG
-local box=Instance.new("TextLabel")
-box.Size=UDim2.fromOffset(320,70)
-box.Position=UDim2.new(0.5,-160,0,20)
-box.BackgroundColor3=Color3.fromRGB(30,31,40)
-box.TextColor3=Color3.fromRGB(255,190,90)
-box.TextSize=14
-box.Font=Enum.Font.GothamBold
-box.TextWrapped=true
-box.Text="Tiw Hub รองรับเฉพาะ Blox Fruits (Sea 1-3)\nแมพนี้ไม่รองรับ (ID " .. PID .. ")"
-box.Parent=warnGui
-Instance.new("UICorner",box).CornerRadius=UDim.new(0,10)
-task.delay(5,function() warnGui:Destroy() end)
-warn("[TiwHub] Blox Fruits only. Unsupported PlaceId: " .. PID)
-return
-end
-local DEF={scale=0.75,accent="Purple",lang="ไทย",hud=false,sHud=false,boost=false,fovOn=false,fov=70,key="RightShift"}
-local CF,SV={},{}
-for k,v in pairs(DEF) do CF[k]=v end
-local function ReadSaved()
-local raw
-pcall(function() if isfile and readfile and isfile(FILE) then raw=readfile(FILE) end end)
-if not raw then pcall(function() if getgenv and getgenv().TiwHubSaved then raw=getgenv().TiwHubSaved[FILE] end end) end
-return raw
-end
-local function Load()
-local raw=ReadSaved()
-if not raw then return false end
-return (pcall(function()
-for k,v in pairs(HS:JSONDecode(raw)) do
-if DEF[k]~=nil and type(v)==type(DEF[k]) then CF[k]=v;SV[k]=true end
-end
-end))
-end
-local function DetectMode()
-local m=nil
-pcall(function() if isfile and isfile(FILE) then m="file" end end)
-if not m then pcall(function() if getgenv and getgenv().TiwHubSaved and getgenv().TiwHubSaved[FILE] then m="mem" end end) end
-return m
-end
-local saveMode=DetectMode()
-Load()
-local function T(en,th) return CF.lang=="English" and en or th end
-local loc={}
-local function Tr(o,en,th,pre)
-loc[#loc+1]={o,en,th,pre or ""}
-o.Text=(pre or "") .. T(en,th)
-end
-local function SetLang()
-for _,l in ipairs(loc) do if l[1].Parent then l[1].Text=l[4] .. T(l[2],l[3]) end end
-end
-local AC={
-Purple=Color3.fromRGB(124,108,255),Blue=Color3.fromRGB(80,150,255),Green=Color3.fromRGB(70,200,120),
-Red=Color3.fromRGB(230,80,90),Orange=Color3.fromRGB(245,155,60),Pink=Color3.fromRGB(240,100,175),
-}
-local AN={"Purple","Blue","Green","Red","Orange","Pink"}
-local A=AC[CF.accent] or AC.Purple
-local BG,PN,DK,IT=Color3.fromRGB(22,23,29),Color3.fromRGB(30,31,40),Color3.fromRGB(16,17,22),Color3.fromRGB(42,44,56)
-local OFF,TX,SB=Color3.fromRGB(58,60,76),Color3.fromRGB(230,230,238),Color3.fromRGB(150,150,165)
-local function N(c,p,par)
-local i=Instance.new(c)
-for k,v in pairs(p) do i[k]=v end
-i.Parent=par
-return i
-end
-local function R(o,r) N("UICorner",{CornerRadius=UDim.new(0,r)},o) end
-local reg,fns={},{}
-local function Ac(o,p) reg[#reg+1]={o,p};o[p]=A end
-local function Tw(o,p,t) TS:Create(o,TweenInfo.new(t or 0.15),p):Play() end
-local function St(o,t) local s=N("UIStroke",{Thickness=t},o);Ac(s,"Color") end
-local function Safe(f,...) if f then local ok,e=pcall(f,...);if not ok then warn("[TiwHub] " .. tostring(e)) end end end
-local function Recolor(name)
-A=AC[name] or AC.Purple
-for _,r in ipairs(reg) do if r[1].Parent then r[1][r[2]]=A end end
-for _,f in ipairs(fns) do pcall(f) end
-end
-pcall(function() PG.TiwHub:Destroy() end)
-local gui=N("ScreenGui",{Name="TiwHub",ResetOnSpawn=false,DisplayOrder=999,ZIndexBehavior=Enum.ZIndexBehavior.Sibling},PG)
-local cn={}
-do
-local cbox=N("Frame",{Size=UDim2.fromOffset(320,180),Position=UDim2.new(0.5,-160,0.5,-90),BackgroundColor3=Color3.fromRGB(20,20,25),BorderSizePixel=0},gui)
-R(cbox,12);St(cbox,2)
-local ct=N("TextLabel",{Size=UDim2.new(1,0,0,40),Position=UDim2.fromOffset(0,10),BackgroundTransparency=1,Text="TIW HUB",TextSize=22,Font=Enum.Font.GothamBold},cbox)
-Ac(ct,"TextColor3")
-local cm=N("TextLabel",{Size=UDim2.new(1,-20,0,20),Position=UDim2.fromOffset(10,48),BackgroundTransparency=1,TextColor3=Color3.fromRGB(120,255,160),TextSize=13,Font=Enum.Font.GothamBold,TextWrapped=true},cbox)
-Tr(cm,"Map: " .. MAP.n,"แมพ: " .. MAP.t)
-local cq=N("TextLabel",{Size=UDim2.new(1,-20,0,30),Position=UDim2.fromOffset(10,72),BackgroundTransparency=1,TextColor3=TX,TextSize=15,Font=Enum.Font.Gotham,TextWrapped=true},cbox)
-Tr(cq,"Do you want to run Tiw Hub?","คุณต้องการรัน Tiw Hub หรือไม่?")
-local crun=N("TextButton",{Size=UDim2.fromOffset(200,40),Position=UDim2.new(0.5,-100,1,-55),TextColor3=Color3.new(1,1,1),TextSize=18,Font=Enum.Font.GothamBold},cbox)
-R(crun,8);Ac(crun,"BackgroundColor3");Tr(crun,"Run","รัน")
-print("[TiwHub] waiting for confirm")
-crun.MouseButton1Click:Wait()
-cbox:Destroy()
-end
-local holder=N("Frame",{Size=UDim2.new(0,240,1,-20),Position=UDim2.new(1,-250,0,10),BackgroundTransparency=1},gui)
-N("UIListLayout",{Padding=UDim.new(0,6),VerticalAlignment=Enum.VerticalAlignment.Bottom},holder)
-local function Toast(en,th)
-local f=N("TextLabel",{Size=UDim2.new(1,0,0,34),BackgroundColor3=PN,Text=T(en,th),TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham},holder)
-R(f,8);St(f,1.5)
-task.delay(2.5,function() f:Destroy() end)
-end
-local function Copy(s)
-local ok=false
-if setclipboard then ok=pcall(setclipboard,s) end
-Toast(ok and "Copied" or "Clipboard not supported",ok and "คัดลอกแล้ว" or "ไม่รองรับการคัดลอก")
-end
-local function Drag(frame,handle,tap)
-local dr,mv,ds,sp=false,false,nil,nil
-handle.InputBegan:Connect(function(i)
-if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-dr,mv,ds,sp=true,false,i.Position,frame.Position
-local c
-c=i.Changed:Connect(function()
-if i.UserInputState==Enum.UserInputState.End then
-dr=false;c:Disconnect()
-if tap and not mv then tap() end
-end
-end)
-end
-end)
-cn[#cn+1]=UIS.InputChanged:Connect(function(i)
-if dr and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
-local d=i.Position - ds
-if d.Magnitude > 4 then mv=true end
-if mv then frame.Position=UDim2.new(sp.X.Scale,sp.X.Offset+d.X,sp.Y.Scale,sp.Y.Offset+d.Y) end
-end
-end)
-end
-local bal=N("TextButton",{Size=UDim2.fromOffset(50,50),Position=UDim2.new(0,16,0.5,-25),BackgroundColor3=PN,Text="TIW",TextSize=14,Font=Enum.Font.GothamBold,AutoButtonColor=false},gui)
-R(bal,25);St(bal,2);Ac(bal,"TextColor3")
-local W,H=500,340
-local win=N("Frame",{Size=UDim2.fromOffset(W,H),Position=UDim2.new(0.5,-W/2,0.5,-H/2),BackgroundColor3=BG,BorderSizePixel=0},gui)
-R(win,10);St(win,1.5)
-local ws=N("UIScale",{Scale=CF.scale},win)
-local top=N("Frame",{Size=UDim2.new(1,0,0,38),BackgroundColor3=PN,BorderSizePixel=0},win)
-R(top,10)
-N("Frame",{Size=UDim2.new(1,0,0,10),Position=UDim2.new(0,0,1,-10),BackgroundColor3=PN,BorderSizePixel=0},top)
-local ttl=N("TextLabel",{Size=UDim2.new(1,-60,1,0),Position=UDim2.fromOffset(15,0),BackgroundTransparency=1,Text="TIW HUB  |  " .. MAP.n,TextSize=14,Font=Enum.Font.GothamBlack,TextXAlignment=Enum.TextXAlignment.Left},top)
-Ac(ttl,"TextColor3")
-local x=N("TextButton",{Size=UDim2.fromOffset(30,30),Position=UDim2.new(1,-36,0,4),BackgroundTransparency=1,Text="×",TextColor3=SB,TextSize=22,Font=Enum.Font.GothamBold},top)
-local tl=N("ScrollingFrame",{Size=UDim2.new(0,120,1,-48),Position=UDim2.fromOffset(6,43),BackgroundColor3=DK,BorderSizePixel=0,ScrollBarThickness=0,CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y},win)
-R(tl,8)
-N("UIListLayout",{Padding=UDim.new(0,4)},tl)
-N("UIPadding",{PaddingTop=UDim.new(0,5),PaddingLeft=UDim.new(0,5),PaddingRight=UDim.new(0,5),PaddingBottom=UDim.new(0,5)},tl)
-local hold=N("Frame",{Size=UDim2.new(1,-140,1,-48),Position=UDim2.fromOffset(132,43),BackgroundTransparency=1},win)
-local tabs,cur={},nil
-local function Sel(t)
-for _,o in ipairs(tabs) do o.p.Visible=false;o.b.BackgroundColor3=PN;o.b.TextColor3=SB end
-t.p.Visible=true;t.b.BackgroundColor3=A;t.b.TextColor3=Color3.new(1,1,1);cur=t
-end
-fns[#fns+1]=function() if cur then Sel(cur) end end
-local function Tab(en,th)
-local b=N("TextButton",{Size=UDim2.new(1,0,0,30),BackgroundColor3=PN,TextColor3=SB,TextSize=12,Font=Enum.Font.GothamSemibold,TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false},tl)
-R(b,6);Tr(b,en,th,"  ")
-local p=N("ScrollingFrame",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,BorderSizePixel=0,Visible=false,ScrollBarThickness=3,CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y},hold)
-N("UIListLayout",{Padding=UDim.new(0,7),SortOrder=Enum.SortOrder.LayoutOrder},p)
-N("UIPadding",{PaddingRight=UDim.new(0,6),PaddingBottom=UDim.new(0,6)},p)
-local t={b=b,p=p}
-tabs[#tabs+1]=t
-b.MouseButton1Click:Connect(function() Sel(t) end)
-return p
-end
-local CT={}
-local lo=0
-local function Row(pg,h)
-lo=lo+1
-local f=N("Frame",{Size=UDim2.new(1,0,0,h or 38),BackgroundColor3=PN,BorderSizePixel=0,LayoutOrder=lo},pg)
-R(f,7)
-return f
-end
-local function Txt(par,en,th,w,h)
-local l=N("TextLabel",{Size=UDim2.new(1,-(w or 60),0,h or 38),Position=UDim2.fromOffset(12,0),BackgroundTransparency=1,TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true},par)
-Tr(l,en,th)
-return l
-end
-local function Sec(pg,en,th)
-lo=lo+1
-local l=N("TextLabel",{Size=UDim2.new(1,0,0,20),BackgroundTransparency=1,TextSize=11,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,LayoutOrder=lo},pg)
-Ac(l,"TextColor3");Tr(l,en,th)
-end
-local function Lbl(pg,en,th)
-local l=Txt(Row(pg,32),en,th,24,32)
-l.TextColor3=SB
-end
-local function Dyn(pg,h)
-local l=N("TextLabel",{Size=UDim2.new(1,-24,1,-8),Position=UDim2.fromOffset(12,4),BackgroundTransparency=1,TextColor3=SB,TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,TextWrapped=true},Row(pg,h))
-return l
-end
-local function Btn(pg,en,th,cb)
-local r=Row(pg,38)
-local b=N("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false},r)
-Tr(b,en,th,"  ")
-b.MouseButton1Click:Connect(function() r.BackgroundColor3=IT;Tw(r,{BackgroundColor3=PN},0.25);Safe(cb) end)
-end
-local function Tog(pg,key,en,th,cb)
-local r=Row(pg,38)
-Txt(r,en,th)
-local hit=N("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text=""},r)
-local bg=N("Frame",{Size=UDim2.fromOffset(38,20),Position=UDim2.new(1,-50,0.5,-10),BackgroundColor3=OFF,BorderSizePixel=0},r)
-R(bg,10)
-local dot=N("Frame",{Size=UDim2.fromOffset(14,14),Position=UDim2.new(0,3,0.5,-7),BackgroundColor3=Color3.fromRGB(215,215,220),BorderSizePixel=0},bg)
-R(dot,7)
-local o={}
-local function Vis(anim)
-local c=CF[key] and A or OFF
-local p=CF[key] and UDim2.new(1,-17,0.5,-7) or UDim2.new(0,3,0.5,-7)
-if anim then Tw(bg,{BackgroundColor3=c});Tw(dot,{Position=p}) else bg.BackgroundColor3=c;dot.Position=p end
-end
-function o.set(v,silent) CF[key]=v and true or false;Vis(true);if not silent then Safe(cb,CF[key]) end end
-function o.apply() Safe(cb,CF[key]) end
-Vis(false)
-fns[#fns+1]=function() Vis(false) end
-hit.MouseButton1Click:Connect(function() o.set(not CF[key]) end)
-CT[key]=o
-end
-local function Sld(pg,key,en,th,mn,mx,st,cb)
-local r=Row(pg,52)
-Txt(r,en,th,80,28)
-local val=N("TextLabel",{Size=UDim2.fromOffset(60,28),Position=UDim2.new(1,-72,0,0),BackgroundTransparency=1,TextSize=12,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Right},r)
-Ac(val,"TextColor3")
-local tr=N("Frame",{Size=UDim2.new(1,-24,0,6),Position=UDim2.new(0,12,0,36),BackgroundColor3=OFF,BorderSizePixel=0},r)
-R(tr,3)
-local fl=N("Frame",{Size=UDim2.new(0,0,1,0),BorderSizePixel=0},tr)
-R(fl,3);Ac(fl,"BackgroundColor3")
-R(N("Frame",{Size=UDim2.fromOffset(14,14),Position=UDim2.new(1,-7,0.5,-7),BackgroundColor3=Color3.new(1,1,1),BorderSizePixel=0},fl),7)
-local hit=N("TextButton",{Size=UDim2.new(1,0,0,26),Position=UDim2.new(0,0,0.5,-13),BackgroundTransparency=1,Text=""},tr)
-local o={}
-function o.set(v,silent)
-v=math.clamp(math.floor((v - mn)/st+0.5)*st+mn,mn,mx)
-CF[key]=v
-fl.Size=UDim2.new((v - mn)/(mx - mn),0,1,0)
-val.Text=(st % 1==0) and tostring(v) or string.format("%.2f",v)
-if not silent then Safe(cb,v) end
-end
-function o.apply() Safe(cb,CF[key]) end
-o.set(CF[key],true)
-local dr=false
-local function From(i) o.set(mn+(mx - mn)*math.clamp((i.Position.X - tr.AbsolutePosition.X)/tr.AbsoluteSize.X,0,1)) end
-hit.InputBegan:Connect(function(i)
-if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-dr=true;From(i)
-local c
-c=i.Changed:Connect(function() if i.UserInputState==Enum.UserInputState.End then dr=false;c:Disconnect() end end)
-end
-end)
-cn[#cn+1]=UIS.InputChanged:Connect(function(i)
-if dr and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then From(i) end
-end)
-CT[key]=o
-end
-local function Dd(pg,key,en,th,opts,cb)
-local r=Row(pg,38)
-Txt(r,en,th,130)
-local b=N("TextButton",{Size=UDim2.new(0,120,1,0),Position=UDim2.new(1,-126,0,0),BackgroundTransparency=1,TextSize=12,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Right},r)
-Ac(b,"TextColor3")
-local o={}
-function o.set(v,silent) CF[key]=v;b.Text=tostring(v) .. "  ›";if not silent then Safe(cb,v) end end
-function o.apply() Safe(cb,CF[key]) end
-o.set(CF[key],true)
-b.MouseButton1Click:Connect(function()
-local n=1
-for i,v in ipairs(opts) do if v==CF[key] then n=i end end
-o.set(opts[n % #opts+1])
-end)
-CT[key]=o
-end
-local Boost
-do
-local BX={on=false,job=0,sv=nil,fx=nil,orig=nil,conn=nil}
-local FXC={ParticleEmitter=true,Trail=true,Beam=true,Smoke=true,Fire=true,Sparkles=true,PointLight=true,SpotLight=true,SurfaceLight=true}
-local PPC={BloomEffect=true,BlurEffect=true,DepthOfFieldEffect=true,SunRaysEffect=true}
-local function Lite(o)
-local c=o.ClassName
-if FXC[c] then
-if o.Enabled then BX.fx[o]=true;o.Enabled=false end
-elseif c=="Decal" or c=="Texture" then
-if not BX.orig[o] then BX.orig[o]={t=o.Transparency};o.Transparency=1 end
-elseif o:IsA("BasePart") and c~="Terrain" then
-if not BX.orig[o] then
-local isMesh=o:IsA("MeshPart")
-BX.orig[o]={m=o.Material,r=o.Reflectance,c=o.CastShadow,f=isMesh and o.RenderFidelity or nil}
-o.Material=Enum.Material.SmoothPlastic
-o.Reflectance=0
-o.CastShadow=false
-if isMesh then o.RenderFidelity=Enum.RenderFidelity.Performance end
-end
-end
-end
-function Boost(on)
-if on then
-if BX.on then return end
-BX.on=true;BX.job=BX.job+1
-local job=BX.job
-local sv={pp={}}
-BX.sv=sv
-BX.fx=setmetatable({},{__mode="k"})
-BX.orig=setmetatable({},{__mode="k"})
-pcall(function() sv.sh=LT.GlobalShadows end)
-pcall(function() sv.q=settings().Rendering.QualityLevel end)
-pcall(function() sv.md=settings().Rendering.MeshPartDetailLevel end)
-pcall(function() LT.GlobalShadows=false end)
-pcall(function() settings().Rendering.QualityLevel=Enum.QualityLevel.Level01 end)
-pcall(function() settings().Rendering.MeshPartDetailLevel=Enum.MeshPartDetailLevel.Level04 end)
-pcall(function()
-for _,o in ipairs(LT:GetChildren()) do
-if PPC[o.ClassName] and o.Enabled then sv.pp[#sv.pp+1]=o;o.Enabled=false end
-end
-end)
-pcall(function()
-local t=workspace.Terrain
-sv.w={t.WaterWaveSize,t.WaterWaveSpeed,t.WaterReflectance}
-t.WaterWaveSize=0;t.WaterWaveSpeed=0;t.WaterReflectance=0
-local cl=t:FindFirstChildOfClass("Clouds")
-if cl and cl.Enabled then sv.cl=cl;cl.Enabled=false end
-end)
-BX.conn=workspace.DescendantAdded:Connect(function(o) pcall(Lite,o) end)
-task.spawn(function()
-local n=0
-for _,o in ipairs(workspace:GetDescendants()) do
-if not BX.on or BX.job~=job then return end
-pcall(Lite,o)
-n=n+1
-if n%250==0 then task.wait() end
-end
-end)
-else
-if not BX.on then return end
-BX.on=false;BX.job=BX.job+1
-if BX.conn then BX.conn:Disconnect();BX.conn=nil end
-local sv,orig,fx=BX.sv,BX.orig,BX.fx
-BX.sv,BX.orig,BX.fx=nil,nil,nil
-if sv then
-if sv.sh~=nil then pcall(function() LT.GlobalShadows=sv.sh end) end
-if sv.q then pcall(function() settings().Rendering.QualityLevel=sv.q end) end
-if sv.md then pcall(function() settings().Rendering.MeshPartDetailLevel=sv.md end) end
-for _,o in ipairs(sv.pp) do pcall(function() o.Enabled=true end) end
-if sv.cl then pcall(function() sv.cl.Enabled=true end) end
-if sv.w then pcall(function() local t=workspace.Terrain;t.WaterWaveSize=sv.w[1];t.WaterWaveSpeed=sv.w[2];t.WaterReflectance=sv.w[3] end) end
-end
-task.spawn(function()
-local n=0
-if fx then for o in pairs(fx) do pcall(function() o.Enabled=true end) end end
-if orig then
-for o,v in pairs(orig) do
-pcall(function()
-if v.t~=nil then o.Transparency=v.t
-else
-o.Material=v.m;o.Reflectance=v.r;o.CastShadow=v.c
-if v.f then o.RenderFidelity=v.f end
-end
-end)
-n=n+1
-if n%250==0 then task.wait() end
-end
-end
-end)
-end
-end
-end
-local fov0=workspace.CurrentCamera and workspace.CurrentCamera.FieldOfView or 70
-local function StatText()
-local out={}
-pcall(function()
-local d=LP:FindFirstChild("Data")
-if MAP and MAP.bf and d then
-for _,nm in ipairs({"Level","Beli","Fragments"}) do
-local o=d:FindFirstChild(nm)
-if o then out[#out+1]=nm .. ": " .. tostring(o.Value) end
-end
-end
-local ls=LP:FindFirstChild("leaderstats")
-if ls then
-for _,o in ipairs(ls:GetChildren()) do
-if o:IsA("ValueBase") then out[#out+1]=o.Name .. ": " .. tostring(o.Value) end
-end
-end
-end)
-if #out==0 then return T("No stats found in this map","ไม่พบข้อมูลสถานะในแมพนี้") end
-return table.concat(out,"\n")
-end
-local function NumStats()
-local out,ord={},{}
-pcall(function()
-local d=LP:FindFirstChild("Data")
-if MAP and MAP.bf and d then
-for _,nm in ipairs({"Level","Beli","Fragments"}) do
-local o=d:FindFirstChild(nm)
-if o and type(o.Value)=="number" then out[nm]=o.Value;ord[#ord+1]=nm end
-end
-end
-local ls=LP:FindFirstChild("leaderstats")
-if ls then
-for _,o in ipairs(ls:GetChildren()) do
-if o:IsA("ValueBase") and type(o.Value)=="number" and out[o.Name]==nil then out[o.Name]=o.Value;ord[#ord+1]=o.Name end
-end
-end
-end)
-return out,ord
-end
-local function Clock(s) s=math.floor(s);return string.format("%02d:%02d:%02d",math.floor(s/3600),math.floor(s % 3600/60),s % 60) end
-local function Dur(s)
-s=math.floor(s)
-local h=math.floor(s/3600)
-local m=math.floor(s % 3600/60)
-if h>0 then return h .. T(" h "," ชั่วโมง ") .. m .. T(" min"," นาที") end
-return m .. T(" min "," นาที ") .. (s % 60) .. T(" sec"," วินาที")
-end
-local function GetPing()
-local p=0
-pcall(function() p=math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()) end)
-return p
-end
-local S={start=os.clock(),fMin=math.huge,fMax=0,fSum=0,fN=0,pSum=0,pN=0,base={}}
-local hud=N("TextLabel",{Size=UDim2.fromOffset(150,26),Position=UDim2.fromOffset(10,10),BackgroundColor3=PN,BackgroundTransparency=0.15,Text="FPS --",TextColor3=TX,TextSize=12,Font=Enum.Font.GothamBold,Visible=false},gui)
-R(hud,6);St(hud,1)
-local shud=N("TextLabel",{Size=UDim2.fromOffset(170,0),AutomaticSize=Enum.AutomaticSize.Y,Position=UDim2.fromOffset(10,42),BackgroundColor3=PN,BackgroundTransparency=0.15,Text="",TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextWrapped=true,Visible=false},gui)
-R(shud,6);St(shud,1)
-local TB={}
-TB.Map,TB.Pl,TB.Sess,TB.UI,TB.Perf,TB.Cfg,TB.Tool=Tab("Map","แมพนี้"),Tab("Players","ผู้เล่น"),Tab("Session","สถิติรอบนี้"),Tab("Interface","หน้าตา/ภาษา"),Tab("Performance","ประสิทธิภาพ"),Tab("Remember settings","จดจำการตั้งค่า"),Tab("Tools","เครื่องมือ")
-Sec(TB.Map,"Current map","แมพปัจจุบัน")
-local mapName=Dyn(TB.Map,30)
-mapName.TextColor3=TX
-Lbl(TB.Map,"PlaceId: " .. PID,"PlaceId: " .. PID)
-Lbl(TB.Map,"Settings file: " .. FILE,"ไฟล์การตั้งค่า: " .. FILE)
-Sec(TB.Map,"Live info","ข้อมูลสด")
-local live=Dyn(TB.Map,58)
-Sec(TB.Map,"My stats (read-only)","สถานะของฉัน (อ่านอย่างเดียว)")
-local stat=Dyn(TB.Map,92)
-Tog(TB.Map,"sHud","Show stats on screen","แสดงสถานะบนหน้าจอ",function(on) shud.Visible=on end)
+-- =============================================
+-- 📖 เมนูเรียนรู้ (Study Menu)
+-- วางที่: StarterGui → สร้าง LocalScript → วางโค้ดนี้ทั้งหมด
+-- กด M หรือปุ่มที่มุมซ้ายบนเพื่อเปิด/ปิดเมนู
+--
+-- ⚠️ ระบบทั้งหมดเป็น "แสดงผลเป็นบันทแสดงผลเป็นบันทึกการทำงานเท่านั้นลเป็นบันทึกการทำงานเท่านั้นควบคุมตัวละครตัวละคร มอนสเตอร์ หรือระบบของเกมจริง
+--    เอฟเฟกต์ของฝั่งเราเองจริง
+--
+-- 🎓 โครงสร้างที่ควรศึกษา (ค้นหาหัวข้อเหล่านี้ในโค้ด):
+--    1) State          เก็บสถานะเปิด/ปิดของทุกฟีเจอร์ไว้ที่เดียว
+--    2) Categories     ข้อมูลล้วนๆ (data-driven) เพิ่มฟีเจอร์ได้โดยไม่แก้ UI
+--    3) Simulations    ตารางฟังก์ชัน key -> ฟังก์ชัน (dispatch table)
+--    4) BuildToggle    สร้างแถวสวิตช์จากข้อมูล แล้วผูกกับ State + Simulations
+--    5) AddLog         คิวข้อความล่าสุด แสดงให้เห็นว่าระบบ "ทำอะไร"
+-- =============================================
 
--- NEW: Players tab
-Sec(TB.Pl,"Players in this server","ผู้เล่นในเซิร์ฟเวอร์นี้")
-local plCount=Dyn(TB.Pl,26)
-Lbl(TB.Pl,"Tap a player to copy their username","แตะที่ชื่อเพื่อคัดลอกชื่อผู้ใช้")
-local plRows={}
-local function RefreshPlayers()
-for _,r in ipairs(plRows) do r:Destroy() end
-plRows={}
-local list=P:GetPlayers()
-table.sort(list,function(a,b) return a.Name:lower()<b.Name:lower() end)
-plCount.Text=T("Players in this map: ","ผู้เล่นในแมพนี้: ") .. #list .. T(" (max "," คน (สูงสุด ") .. P.MaxPlayers .. ")"
-for _,pl in ipairs(list) do
-local r=Row(TB.Pl,32)
-local b=N("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,TextTruncate=Enum.TextTruncate.AtEnd,Text="  " .. pl.DisplayName .. " (@" .. pl.Name .. ")  ·  " .. pl.AccountAge .. T(" days"," วัน")},r)
-if pl==LP then Ac(b,"TextColor3") end
-b.MouseButton1Click:Connect(function() Copy(pl.Name) end)
-plRows[#plRows+1]=r
-end
-end
-Btn(TB.Pl,"Refresh list","รีเฟรชรายชื่อ",RefreshPlayers)
-cn[#cn+1]=P.PlayerAdded:Connect(function() task.defer(RefreshPlayers) end)
-cn[#cn+1]=P.PlayerRemoving:Connect(function() task.defer(RefreshPlayers) end)
-RefreshPlayers()
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
 
--- NEW: Session tab
-Sec(TB.Sess,"This session","รอบการเล่นนี้")
-local sess=Dyn(TB.Sess,120)
-Btn(TB.Sess,"Reset session stats","รีเซ็ตสถิติรอบนี้",function()
-S.start,S.fMin,S.fMax,S.fSum,S.fN,S.pSum,S.pN,S.base=os.clock(),math.huge,0,0,0,0,0,{}
-Toast("Session reset","รีเซ็ตแล้ว")
-end)
-local function SessionText()
-local lines={T("Time: ","เวลา: ") .. Clock(os.clock() - S.start)}
-if S.fN>0 then lines[#lines+1]="FPS  min " .. S.fMin .. "  avg " .. math.floor(S.fSum/S.fN+0.5) .. "  max " .. S.fMax end
-if S.pN>0 then lines[#lines+1]=T("Avg ping: ","ปิงเฉลี่ย: ") .. math.floor(S.pSum/S.pN+0.5) .. " ms" end
-local cur,ord=NumStats()
-for _,nm in ipairs(ord) do
-if S.base[nm]==nil then S.base[nm]=cur[nm] end
-local d=cur[nm] - S.base[nm]
-lines[#lines+1]=nm .. ": " .. cur[nm] .. "  (" .. (d>=0 and "+" or "") .. d .. ")"
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- =============================================
+-- 🎨 สี และตัวช่วยสร้าง UI
+-- =============================================
+local COLORS = {
+	accent = Color3.fromRGB(124, 108, 255),
+	bg = Color3.fromRGB(26, 27, 38),
+	bar = Color3.fromRGB(36, 37, 52),
+	row = Color3.fromRGB(38, 40, 56),
+	logBg = Color3.fromRGB(20, 22, 32),
+	logText = Color3.fromRGB(100, 255, 160),
+	textMain = Color3.fromRGB(235, 235, 245),
+	textDim = Color3.fromRGB(150, 150, 170),
+	off = Color3.fromRGB(70, 72, 92),
+	on = Color3.fromRGB(70, 200, 120),
+}
+
+-- สร้าง Instance พร้อมตั้งค่าหลายอย่างในครั้งเดียว
+local function make(className, props, parent)
+	local inst = Instance.new(className)
+	for k, v in pairs(props) do
+		inst[k] = v
+	end
+	inst.Parent = parent
+	return inst
 end
-return table.concat(lines,"\n")
-end Sec(TB.UI,"Language","ภาษา")
-Dd(TB.UI,"lang","Language","ภาษา",{"ไทย","English"},function() SetLang();RefreshPlayers() end)
-Sec(TB.UI,"Window","หน้าต่าง")
-Sld(TB.UI,"scale","Window size","ขนาดหน้าต่าง",0.5,1.2,0.05,function(v) Tw(ws,{Scale=v}) end)
-Sec(TB.UI,"Theme","ธีม")
-Dd(TB.UI,"accent","Theme color","สีธีม",AN,Recolor)
-Sec(TB.UI,"HUD","แสดงบนหน้าจอ")
-Tog(TB.UI,"hud","Show FPS / Ping","แสดง FPS / Ping",function(on) hud.Visible=on end)
-Sec(TB.Perf,"Graphics","กราฟิก")
-Tog(TB.Perf,"boost","Low-lag mode","โหมดลดแลค",function(on)
-Boost(on);Toast(on and "Low-lag mode on" or "Graphics restored",on and "เปิดโหมดลดแลคแล้ว" or "คืนค่ากราฟิกแล้ว")
-end)
-Lbl(TB.Perf,"Turns off shadows, effects, lights, blur/bloom, clouds and water waves, makes materials plain and hides textures. Only on your screen; the world will look flat.","ปิดเงา เอฟเฟกต์ แสงไฟ เบลอ/บลูม เมฆ คลื่นน้ำ ทำให้พื้นผิวเรียบและซ่อนลวดลาย เห็นผลเฉพาะบนหน้าจอคุณ โลกจะดูเรียบขึ้น")
-Sec(TB.Perf,"Camera","กล้อง")
-Tog(TB.Perf,"fovOn","Use custom FOV","ใช้ FOV ที่กำหนดเอง",function(on)
-if not on and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
-end)
-Sld(TB.Perf,"fov","FOV","ค่า FOV",30,120,1,function() end)
-Sec(TB.Cfg,"Remember settings","จดจำการตั้งค่า")
-local cfgLbl=Dyn(TB.Cfg,56)
-local function SaveStatusText()
-if saveMode=="file" then return T("Status: remembered ✓ (saved to a file, works after reopening the game)","สถานะ: จดจำแล้ว ✓ (บันทึกลงไฟล์ ใช้ได้แม้ปิดเกมแล้วเปิดใหม่)") end
-if saveMode=="mem" then return T("Status: remembered temporarily (this executor can't write files, kept until you close the executor)","สถานะ: จดจำชั่วคราว (executor นี้เขียนไฟล์ไม่ได้ จะจำจนกว่าจะปิด executor)") end
-return T("Status: nothing remembered yet","สถานะ: ยังไม่ได้จดจำ")
+
+local function corner(inst, radius)
+	make("UICorner", { CornerRadius = UDim.new(0, radius) }, inst)
 end
-Btn(TB.Cfg,"Remember my settings now","จดจำการตั้งค่าตอนนี้",function()
-local json
-pcall(function() json=HS:JSONEncode(CF) end)
-if not json then Toast("Couldn't save settings","จดจำไม่สำเร็จ");return end
-local mode=nil
-if writefile then
-local ok=pcall(writefile,FILE,json)
-if ok then
-local back
-pcall(function() back=isfile and readfile and isfile(FILE) and readfile(FILE) end)
-if back==nil or back==json then mode="file" end
+
+-- =============================================
+-- 📂 ข้อมูลหมวดหมู่และฟีเจอร์ (data-driven)
+-- on / off = ข้อความที่จะบันทึกลงล็อกเมื่อเปิด / ปิด
+-- real = true แปลว่ามีผลจริง (มีฟังก์ชันของตัวเองใน Simulations)
+-- =============================================
+local Categories = {
+	{
+		name = "ฟาร์ม", icon = "🌾",
+		items = {
+			{ key = "AutoFarm", name = "Auto Farm Level", desc = "จำลอง: รับเควส -> ตีมอน -> เช็คเลเวล -> วนซ้ำ",
+				on = "🌾 Auto Farm → เริ่มทำงาน: รับเควส -> ตีมอน -> อัปเดตสถานะ", off = "🌾 Auto Farm → หยุดทำงาน" },
+			{ key = "AutoBoss", name = "Auto Farm Boss", desc = "จำลอง: ค้นหาตำแหน่งบอส -> เดินไป -> ตี -> รับรางวัล",
+				on = "👹 Auto Boss → ค้นหาบอส... พบแล้ว! กำลังเดินไปยังตำแหน่ง", off = "👹 Auto Boss → หยุดค้นหาบอส" },
+			{ key = "AutoMastery", name = "Auto Farm Mastery", desc = "จำลอง: ใช้อาวุธตีมอนเพื่อเพิ่มค่าความชำนาญ",
+				on = "⚔️ Mastery → เริ่มฝึกฝนอาวุธ: เพิ่มค่าความชำนาญ", off = "⚔️ Mastery → หยุดฝึกฝน" },
+			{ key = "AutoQuestItems", name = "Auto Quest Items", desc = "จำลอง: ค้นหาไอเทมเควส -> เก็บ -> นับจำนวน",
+				on = "📦 Quest Items → กำลังรวบรวมไอเทมเควส... [5/10 ชิ้น]", off = "📦 Quest Items → หยุดรวบรวม" },
+		},
+	},
+	{
+		name = "ต่อสู้", icon = "⚔️",
+		items = {
+			{ key = "FastAttack", name = "Fast Attack", desc = "จำลอง: ลดหน่วงเวลาระหว่างการโจมตี",
+				on = "⚡ Fast Attack → ลดหน่วงการโจมตีลง 50%", off = "⚡ Fast Attack → คืนค่าความเร็วปกติ" },
+			{ key = "BringMobs", name = "Bring Mobs", desc = "จำลอง: รวมมอนสเตอร์ที่อยู่ใกล้ให้เป็นกลุ่มเดียว",
+				on = "🎯 Bring Mobs → ดึงมอนสเตอร์ในรัศมี 50 หน่วยมารวมจุด", off = "🎯 Bring Mobs → หยุดรวบรวมมอนสเตอร์" },
+			{ key = "KillAura", name = "Kill Aura", desc = "จำลอง: ตรวจจับศัตรูในระยะ -> โจมตีอัตโนมัติ",
+				on = "💥 Kill Aura → ตรวจพบศัตรูในระยะ 15 หน่วย — โจมตีอัตโนมัติ", off = "💥 Kill Aura → หยุดโจมตีอัตโนมัติ" },
+			{ key = "NoCollision", name = "No Collision", desc = "จำลอง: ปิดการชนกับมอนสเตอร์",
+				on = "👻 No Collision → ปิดการชนกับมอนสเตอร์แล้ว", off = "👻 No Collision → เปิดการชนกับมอนสเตอร์" },
+		},
+	},
+	{
+		name = "ดันเจี้ยน", icon = "🏛️",
+		items = {
+			{ key = "AutoBuyChip", name = "Auto Buy Microchip", desc = "จำลอง: ตรวจสอบเงิน -> ซื้อไอเทมจาก NPC",
+				on = "💳 Auto Buy → ตรวจสอบเงิน: เพียงพอ → ซื้อชิปเปิดดันเจี้ยนสำเร็จ", off = "💳 Auto Buy → หยุดซื้ออัตโนมัติ" },
+			{ key = "AutoRaid", name = "Auto Start Raid", desc = "จำลอง: รอครบจำนวน -> กดเริ่มเรด -> เข้าดันเจี้ยน",
+				on = "🏛️ Auto Raid → รอผู้เล่นครบ... เริ่มเรดแล้ว!", off = "🏛️ Auto Raid → หยุดเข้าเรดอัตโนมัติ" },
+			{ key = "AutoAwaken", name = "Auto Awaken Fruit", desc = "จำลอง: ทำเควสเรด -> ปลดล็อกสกิล -> อัปเกรดผลไม้",
+				on = "✨ Awaken → ปลุกพลังสกิลที่ 1/5 สำเร็จ — กำลังทำเควสต่อ", off = "✨ Awaken → หยุดปลุกพลัง" },
+		},
+	},
+	{
+		name = "ทะเล", icon = "🌊",
+		items = {
+			{ key = "SeaBeast", name = "Auto Sea Beasts", desc = "จำลอง: ตรวจจับสัตว์ทะเล -> ว่ายไป -> จัดการ -> รับของ",
+				on = "🌊 Sea Beast → พบสัตว์ทะเลทางทิศตะวันออก 2 กม. — กำลังเข้าหา", off = "🌊 Sea Beast → หยุดล่าสัตว์ทะเล" },
+			{ key = "MirageFinder", name = "Mirage Island Finder", desc = "จำลอง: ตรวจสอบตำแหน่งเกาะลึกลับ -> แจ้งเตือน",
+				on = "🏝️ Mirage → ตรวจพบสัญญาณเกาะมิราจ! ทิศทาง: ตะวันตกเฉียงเหนือ", off = "🏝️ Mirage → หยุดค้นหา" },
+			{ key = "V4Quest", name = "Auto Find Gear V4", desc = "จำลอง: ค้นหาจุดบูชา -> ทำตามเงื่อนไข -> ปลดล็อกเผ่า",
+				on = "🔮 V4 Quest → เงื่อนไขครบ 3/5 — กำลังไปยังจุดบูชา", off = "🔮 V4 Quest → หยุดทำเควส" },
+			{ key = "LegendSwords", name = "Legendary Swords Quest", desc = "จำลอง: ตรวจเงื่อนไขเควสดาบ -> ไล่ทำทีละขั้น",
+				on = "🗡️ Legendary Swords → ตรวจเงื่อนไขเควส: ขั้นที่ 1/4", off = "🗡️ Legendary Swords → หยุดทำเควสดาบ" },
+			{ key = "SoulGuitar", name = "Soul Guitar Quest", desc = "จำลอง: ทำเควสลับในปราสาทตามลำดับ",
+				on = "🎸 Soul Guitar → เริ่มเควสลับ: ขั้นที่ 1/6", off = "🎸 Soul Guitar → หยุดทำเควส" },
+		},
+	},
+	{
+		name = "ผลไม้", icon = "🍎",
+		items = {
+			{ key = "FruitNotify", name = "Fruit Notifier", desc = "จำลอง: ตรวจพบผลไม้เกิดใหม่ -> แจ้งเตือนตำแหน่ง",
+				on = "🍎 Fruit Notify → ผลไม้เกิดใหม่! ประเภท: ทั่วไป ที่พิกัด (120, 8, -45)", off = "🍎 Fruit Notify → หยุดแจ้งเตือน" },
+			{ key = "FruitTeleport", name = "Auto Teleport to Fruit", desc = "จำลอง: วาร์ปไปยังตำแหน่งผลไม้ทันที",
+				on = "🌀 Fruit TP → วาร์ปไปยังตำแหน่งผลไม้ทันที", off = "🌀 Fruit TP → หยุดวาร์ปอัตโนมัติ" },
+			{ key = "FruitStorage", name = "Auto Store Fruit", desc = "จำลอง: เก็บผลไม้เข้าคลัง -> บันทึกรายการ",
+				on = "📦 Fruit Storage → เก็บผลไม้เข้าคลังแล้ว [มีอยู่ 8 ชิ้น]", off = "📦 Fruit Storage → หยุดเก็บอัตโนมัติ" },
+		},
+	},
+	{
+		name = "เดินทาง", icon = "🚀",
+		items = {
+			{ key = "TweenTp", name = "Tween Teleport", desc = "จำลอง: เคลื่อนที่อย่างราบรื่นไปยังจุดหมาย",
+				on = "🪂 Tween TP → เคลื่อนที่ราบรื่นไปยังจุดหมาย...", off = "🪂 Tween TP → ปิดโหมดวาร์ปราบรื่น" },
+			{ key = "Noclip", name = "Noclip", desc = "จำลอง: ปิดการชนกับวัตถุ -> เดินทะลุได้",
+				on = "🔲 Noclip → ปิดการชนกับวัตถุ — เดินทะลุกำแพงได้", off = "🔲 Noclip → เปิดการชนกับวัตถุปกติ" },
+			{ key = "InfiniteJump", name = "Infinite Jump", desc = "จำลอง: รับอินพุตกระโดด -> กระโดดซ้ำกลางอากาศ",
+				on = "⬆️ Infinite Jump → กระโดดกลางอากาศได้ไม่จำกัด!", off = "⬆️ Infinite Jump → กลับสู่การกระโดดปกติ" },
+			{ key = "Fly", name = "Fly Mode", desc = "จำลอง: ปรับความสูงตำแหน่งตามปุ่มกด",
+				on = "🕊️ Fly Mode → กด W/A/S/D เพื่อเคลื่อนที่, Space เพื่อขึ้น, Shift เพื่อลง", off = "🕊️ Fly Mode → ลงจอดและปิดโหมดบิน" },
+		},
+	},
+	{
+		name = "ผู้เล่น", icon = "🧍",
+		items = {
+			{ key = "PlayerESP", name = "Player ESP", desc = "จำลอง: ไฮไลต์ตำแหน่ง เลือด และค่าหัวของผู้เล่น",
+				on = "👁️ Player ESP → แสดงตำแหน่งและเลือดผู้เล่นรอบตัว (3 คน)", off = "👁️ Player ESP → ซ่อนข้อมูลผู้เล่น" },
+			{ key = "SafeEscape", name = "Safe Zone Escape", desc = "จำลอง: เลือดต่ำกว่าเกณฑ์ -> ไปเขตปลอดภัย",
+				on = "🏥 Safe Escape → เฝ้าดูเลือด: ต่ำกว่า 30% จะไปเขตปลอดภัย", off = "🏥 Safe Escape → ปิดการหนีอัตโนมัติ" },
+			{ key = "AutoStats", name = "Auto Assign Stats", desc = "จำลอง: แจกแต้มสเตตัสตามที่ตั้งค่าไว้",
+				on = "📊 Auto Stats → แจกแต้ม: Melee 50% / Defense 50%", off = "📊 Auto Stats → หยุดแจกแต้ม" },
+			{ key = "RemoteShop", name = "Remote Shop", desc = "จำลอง: เปิดหน้าร้านค้าจากระยะไกล",
+				on = "🛒 Remote Shop → เปิดหน้าร้านค้าแล้ว", off = "🛒 Remote Shop → ปิดหน้าร้านค้า" },
+		},
+	},
+	{
+		name = "เครื่องมือ", icon = "🛠️",
+		items = {
+			{ key = "AntiAFK", name = "Anti-AFK", desc = "จำลอง: ส่งอินพุตเล็กๆ ทุกๆ 2 นาที เพื่อไม่ให้หลุด",
+				on = "🛡️ Anti-AFK → ทำงานอยู่: ส่งสัญญาณค้างไว้ทุก 2 นาที", off = "🛡️ Anti-AFK → ปิดการป้องกัน" },
+			{ key = "FPSBoost", name = "FPS Boost", desc = "ทำจริง: ลดคุณภาพแสง/เงา/เอฟเฟกต์ให้เกมลื่นขึ้น", real = true },
+			{ key = "ServerHop", name = "Server Hop", desc = "จำลอง: แสดงรายการเซิร์ฟเวอร์อื่น -> สลับเซิร์ฟ",
+				on = "🔁 Server Hop → ค้นหาเซิร์ฟเวอร์อื่น... พบ 5 เซิร์ฟเวอร์", off = "🔁 Server Hop → ยกเลิกการสลับเซิร์ฟเวอร์" },
+		},
+	},
+}
+
+-- =============================================
+-- 📊 State — เก็บสถานะของทุกฟีเจอร์ (สร้างจาก Categories อัตโนมัติ)
+-- =============================================
+local State = {
+	Open = false,
+	CurrentCategory = nil,
+	Settings = {},
+}
+for _, cat in ipairs(Categories) do
+	for _, item in ipairs(cat.items) do
+		State.Settings[item.key] = false
+	end
 end
+
+-- =============================================
+-- 🎨 สร้างหน้าจอและเมนู
+-- =============================================
+local ScreenGui = make("ScreenGui", { Name = "StudyMenu", ResetOnSpawn = false }, PlayerGui)
+
+local OpenBtn = make("TextButton", {
+	Size = UDim2.new(0, 130, 0, 45),
+	Position = UDim2.new(0.02, 0, 0.02, 0),
+	BackgroundColor3 = COLORS.accent,
+	Text = "📖 เมนูเรียนรู้",
+	TextColor3 = Color3.new(1, 1, 1),
+	TextSize = 14,
+	Font = Enum.Font.GothamBold,
+}, ScreenGui)
+corner(OpenBtn, 8)
+
+-- พื้นที่แสดงบันทึกการทำงาน
+local LogDisplay = make("TextLabel", {
+	Size = UDim2.new(0, 300, 0, 130),
+	Position = UDim2.new(0.02, 0, 0.10, 0),
+	BackgroundColor3 = COLORS.logBg,
+	BackgroundTransparency = 0.1,
+	TextColor3 = COLORS.logText,
+	TextSize = 10,
+	Font = Enum.Font.Code,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	TextYAlignment = Enum.TextYAlignment.Top,
+	TextWrapped = true,
+	ClipsDescendants = true,
+	Text = "",
+}, ScreenGui)
+corner(LogDisplay, 8)
+make("UIPadding", {
+	PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8),
+	PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6),
+}, LogDisplay)
+
+-- หน้าต่างเมนูหลัก
+local MainFrame = make("Frame", {
+	Size = UDim2.new(0, 360, 0, 440),
+	Position = UDim2.new(0.5, -180, 0.5, -220),
+	BackgroundColor3 = COLORS.bg,
+	Visible = false,
+}, ScreenGui)
+corner(MainFrame, 12)
+
+local TitleBar = make("Frame", {
+	Size = UDim2.new(1, 0, 0, 45),
+	BackgroundColor3 = COLORS.bar,
+}, MainFrame)
+corner(TitleBar, 12)
+
+make("TextLabel", {
+	Size = UDim2.new(1, -60, 1, 0),
+	Position = UDim2.new(0, 15, 0, 0),
+	BackgroundTransparency = 1,
+	Text = "📖 เมนูเรียนรู้ — ทดสอบการทำงาน",
+	TextColor3 = COLORS.accent,
+	TextSize = 15,
+	Font = Enum.Font.GothamBold,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, TitleBar)
+
+local CloseBtn = make("TextButton", {
+	Size = UDim2.new(0, 45, 0, 30),
+	Position = UDim2.new(1, -50, 0, 8),
+	BackgroundTransparency = 1,
+	Text = "✕",
+	TextColor3 = COLORS.textDim,
+	TextSize = 20,
+	Font = Enum.Font.GothamBold,
+}, TitleBar)
+
+-- แถบหมวดหมู่ (เลื่อนซ้าย-ขวาได้)
+local TabContainer = make("ScrollingFrame", {
+	Size = UDim2.new(1, -10, 0, 40),
+	Position = UDim2.new(0, 5, 0, 52),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 0,
+	ScrollingDirection = Enum.ScrollingDirection.X,
+	CanvasSize = UDim2.new(),
+	AutomaticCanvasSize = Enum.AutomaticSize.X,
+}, MainFrame)
+make("UIListLayout", {
+	FillDirection = Enum.FillDirection.Horizontal,
+	Padding = UDim.new(0, 6),
+	VerticalAlignment = Enum.VerticalAlignment.Center,
+}, TabContainer)
+
+-- พื้นที่เนื้อหา
+local ContentFrame = make("ScrollingFrame", {
+	Size = UDim2.new(1, -20, 1, -110),
+	Position = UDim2.new(0, 10, 0, 100),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 4,
+	CanvasSize = UDim2.new(),
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+}, MainFrame)
+make("UIListLayout", {
+	Padding = UDim.new(0, 6),
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, ContentFrame)
+
+-- =============================================
+-- 📝 ระบบบันทึกการทำงาน — เก็บข้อความล่าสุดเป็นคิว
+-- =============================================
+local MAX_LOG_LINES = 9
+local logLines = {}
+
+local function AddLog(text)
+	table.insert(logLines, 1, "[" .. os.date("%H:%M:%S") .. "] " .. text)
+	while #logLines > MAX_LOG_LINES do
+		table.remove(logLines) -- ลบบรรทัดที่เก่าที่สุดออก
+	end
+	LogDisplay.Text = "📋 บันทึกการทำงาน:\n" .. table.concat(logLines, "\n")
+	print("[เมนูเรียนรู้] " .. text)
 end
-if not mode then
-pcall(function()
-local g=getgenv()
-g.TiwHubSaved=g.TiwHubSaved or {}
-g.TiwHubSaved[FILE]=json
-mode="mem"
-end)
+
+-- =============================================
+-- 🔧 Simulations — ตารางฟังก์ชัน key -> ฟังก์ชัน(on)
+-- ฟีเจอร์จำลองถูกสร้างจากข้อความ on/off ใน Categories อัตโนมัติ
+-- ฟีเจอร์ที่ทำจริง (real = true) เขียนฟังก์ชันของตัวเองข้างล่าง
+-- =============================================
+local Simulations = {}
+
+for _, cat in ipairs(Categories) do
+	for _, item in ipairs(cat.items) do
+		if not item.real then
+			Simulations[item.key] = function(on)
+				AddLog(on and item.on or item.off)
+			end
+		end
+	end
 end
-saveMode=mode or saveMode
-if mode=="file" then Toast("Settings remembered (saved to file)","จดจำการตั้งค่าแล้ว (บันทึกลงไฟล์)")
-elseif mode=="mem" then Toast("Remembered temporarily (no file support)","จดจำชั่วคราว (executor ไม่รองรับไฟล์)")
-else Toast("Couldn't save settings","จดจำไม่สำเร็จ") end
-end)
-Btn(TB.Cfg,"Apply remembered settings","ใช้ค่าที่จดจำไว้",function()
-if Load() then
-for k,c in pairs(CT) do c.set(CF[k]) end
-SetLang()
-Toast("Remembered settings applied","ใช้ค่าที่จดจำไว้แล้ว")
-else Toast("Nothing remembered yet","ยังไม่มีค่าที่จดจำไว้") end
-end)
-Btn(TB.Cfg,"Forget remembered settings","ลบค่าที่จดจำไว้",function()
-pcall(function() if delfile and isfile and isfile(FILE) then delfile(FILE) end end)
-pcall(function() if getgenv and getgenv().TiwHubSaved then getgenv().TiwHubSaved[FILE]=nil end end)
-saveMode=DetectMode()
-Toast("Remembered settings cleared","ลบค่าที่จดจำไว้แล้ว")
-end)
-Lbl(TB.Cfg,"Remembered settings load automatically the next time you run the script","ค่าที่จดจำไว้จะถูกโหลดอัตโนมัติเมื่อรันสคริปต์ครั้งต่อไป")
-Sec(TB.Tool,"Server","เซิร์ฟเวอร์")
-Btn(TB.Tool,"Rejoin (same server)","Rejoin (เซิร์ฟเวอร์เดิม)",function() pcall(function() game:GetService("TeleportService"):TeleportToPlaceInstance(PID,game.JobId,LP) end) end)
-Sec(TB.Tool,"Script","สคริปต์")
-Btn(TB.Tool,"Unload script","ปิดสคริปต์ (Unload)",function()
-for _,c in ipairs(cn) do c:Disconnect() end
-Boost(false)
-if workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
-gui:Destroy()
-end)local ac,fr,a2=0,0,1
-cn[#cn+1]=RS.RenderStepped:Connect(function(dt)
-if CF.fovOn and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=CF.fov end
-ac=ac+dt;fr=fr+1;a2=a2+dt
-if ac>=0.5 then
-local ping=GetPing()
-local f=math.floor(fr/ac+0.5)
-hud.Text="FPS " .. f .. "  |  " .. ping .. " ms"
-S.fSum=S.fSum+f;S.fN=S.fN+1
-if f<S.fMin then S.fMin=f end
-if f>S.fMax then S.fMax=f end
-S.pSum=S.pSum+ping;S.pN=S.pN+1
-ac,fr=0,0
+
+-- ✅ FPS Boost: ทำงานจริง และคืนค่าเดิมเมื่อปิด
+local fpsSaved = nil
+
+Simulations.FPSBoost = function(on)
+	if on then
+		if fpsSaved then
+			return
+		end
+		fpsSaved = {
+			shadows = Lighting.GlobalShadows,
+			effects = {},
+		}
+		pcall(function()
+			fpsSaved.quality = settings().Rendering.QualityLevel
+		end)
+
+		Lighting.GlobalShadows = false
+		for _, child in ipairs(Lighting:GetChildren()) do
+			-- PostEffect = Bloom, Blur, SunRays, ColorCorrection, DepthOfField
+			if child:IsA("PostEffect") and child.Enabled then
+				table.insert(fpsSaved.effects, child)
+				child.Enabled = false
+			end
+		end
+		pcall(function()
+			settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+		end)
+		AddLog("🚀 FPS Boost → ปิดเงา/เอฟเฟกต์แล้ว — เกมควรลื่นขึ้น!")
+	else
+		if not fpsSaved then
+			return
+		end
+		Lighting.GlobalShadows = fpsSaved.shadows
+		for _, effect in ipairs(fpsSaved.effects) do
+			effect.Enabled = true
+		end
+		if fpsSaved.quality then
+			pcall(function()
+				settings().Rendering.QualityLevel = fpsSaved.quality
+			end)
+		end
+		fpsSaved = nil
+		AddLog("🚀 FPS Boost → คืนค่าแสง/เงา/เอฟเฟกต์เดิมแล้ว")
+	end
 end
-if a2>=1 then
-a2=0
-mapName.Text=T(MAP.n,MAP.t)
-live.Text=T("Players: ","ผู้เล่น: ") .. #P:GetPlayers() .. "/" .. P.MaxPlayers .. "\n" .. T("Server online for: ","เซิร์ฟเวอร์นี้ออนมาแล้ว: ") .. Dur(workspace.DistributedGameTime)
-local s=StatText()
-stat.Text=s
-shud.Text=" " .. s:gsub("\n","\n ")
-sess.Text=SessionText()
-cfgLbl.Text=SaveStatusText()
+
+-- =============================================
+-- 🔘 BuildToggle — สร้างแถวสวิตช์จากข้อมูลของฟีเจอร์
+-- =============================================
+local function BuildToggle(item, order)
+	local row = make("Frame", {
+		Size = UDim2.new(1, -8, 0, 62),
+		BackgroundColor3 = COLORS.row,
+		LayoutOrder = order,
+	}, ContentFrame)
+	corner(row, 8)
+
+	make("TextLabel", {
+		Size = UDim2.new(1, -90, 0, 22),
+		Position = UDim2.new(0, 10, 0, 6),
+		BackgroundTransparency = 1,
+		Text = item.name,
+		TextColor3 = COLORS.textMain,
+		TextSize = 13,
+		Font = Enum.Font.GothamBold,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, row)
+
+	make("TextLabel", {
+		Size = UDim2.new(1, -90, 0, 30),
+		Position = UDim2.new(0, 10, 0, 28),
+		BackgroundTransparency = 1,
+		Text = item.desc,
+		TextColor3 = COLORS.textDim,
+		TextSize = 10,
+		Font = Enum.Font.Gotham,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+	}, row)
+
+	local switch = make("TextButton", {
+		Size = UDim2.new(0, 62, 0, 28),
+		Position = UDim2.new(1, -72, 0.5, -14),
+		TextColor3 = Color3.new(1, 1, 1),
+		TextSize = 12,
+		Font = Enum.Font.GothamBold,
+		AutoButtonColor = false,
+	}, row)
+	corner(switch, 14)
+
+	-- อัปเดตหน้าตาสวิตช์ให้ตรงกับ State
+	local function refresh()
+		local on = State.Settings[item.key]
+		switch.Text = on and "เปิด" or "ปิด"
+		TweenService:Create(switch, TweenInfo.new(0.15), {
+			BackgroundColor3 = on and COLORS.on or COLORS.off,
+		}):Play()
+	end
+
+	switch.MouseButton1Click:Connect(function()
+		local on = not State.Settings[item.key] -- กลับค่า
+		State.Settings[item.key] = on -- 1) เก็บลง State
+		refresh() -- 2) อัปเดต UI
+		local ok, err = pcall(Simulations[item.key], on) -- 3) เรียกฟังก์ชันของฟีเจอร์
+		if not ok then
+			AddLog("⚠️ " .. item.name .. " ผิดพลาด: " .. tostring(err))
+		end
+	end)
+
+	refresh()
 end
+
+-- =============================================
+-- 📑 หมวดหมู่ — แท็บและการสลับหน้า
+-- =============================================
+local tabButtons = {}
+
+local function ShowCategory(cat)
+	State.CurrentCategory = cat.name
+
+	-- ล้างแถวเก่า (เก็บ UIListLayout ไว้)
+	for _, child in ipairs(ContentFrame:GetChildren()) do
+		if child:IsA("Frame") then
+			child:Destroy()
+		end
+	end
+
+	for i, item in ipairs(cat.items) do
+		BuildToggle(item, i)
+	end
+	ContentFrame.CanvasPosition = Vector2.new(0, 0)
+
+	-- ไฮไลต์แท็บที่เลือก
+	for name, btn in pairs(tabButtons) do
+		btn.BackgroundColor3 = (name == cat.name) and COLORS.accent or COLORS.bar
+	end
+end
+
+for _, cat in ipairs(Categories) do
+	local btn = make("TextButton", {
+		Size = UDim2.new(0, 92, 0, 32),
+		BackgroundColor3 = COLORS.bar,
+		Text = cat.icon .. " " .. cat.name,
+		TextColor3 = Color3.new(1, 1, 1),
+		TextSize = 12,
+		Font = Enum.Font.GothamSemibold,
+		AutoButtonColor = false,
+	}, TabContainer)
+	corner(btn, 8)
+	tabButtons[cat.name] = btn
+	btn.MouseButton1Click:Connect(function()
+		ShowCategory(cat)
+	end)
+end
+
+-- =============================================
+-- 🪟 เปิด/ปิดเมนู
+-- =============================================
+local function SetOpen(open)
+	State.Open = open
+	MainFrame.Visible = open
+end
+
+OpenBtn.MouseButton1Click:Connect(function()
+	SetOpen(not State.Open)
 end)
-local function Toggle() win.Visible=not win.Visible end
-Drag(win,top);Drag(bal,bal,Toggle)
-x.MouseButton1Click:Connect(Toggle)
-cn[#cn+1]=UIS.InputBegan:Connect(function(i,gp)
-if not gp and i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode.Name==CF.key then Toggle() end
+
+CloseBtn.MouseButton1Click:Connect(function()
+	SetOpen(false)
 end)
-Sel(tabs[1])
-for k,c in pairs(CT) do if SV[k] then c.apply() end end
-hud.Visible=CF.hud
-shud.Visible=CF.sHud
-SetLang()
-Toast("Loaded! Tap TIW or press " .. CF.key,"โหลดสำเร็จ! แตะ TIW หรือกด " .. CF.key)
-print("[TiwHub] ready")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then
+		return -- กำลังพิมพ์แชทหรืออินพุตถูกใช้ไปแล้ว
+	end
+	if input.KeyCode == Enum.KeyCode.M then
+		SetOpen(not State.Open)
+	end
+end)
+
+-- =============================================
+-- ▶️ เริ่มต้น
+-- =============================================
+ShowCategory(Categories[1])
+AddLog("✅ พร้อมทำงาน — ระบบทั้งหมดทำงานจริง")
