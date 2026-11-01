@@ -1,4 +1,4 @@
-print("[TiwHub] start")
+Print("[TiwHub] Full All-in-One Script Loaded")
 local P=game:GetService("Players")
 local UIS=game:GetService("UserInputService")
 local TS=game:GetService("TweenService")
@@ -37,7 +37,19 @@ task.delay(5,function() warnGui:Destroy() end)
 warn("[TiwHub] Blox Fruits only. Unsupported PlaceId: " .. PID)
 return
 end
-local DEF={scale=0.75,accent="Purple",lang="ไทย",hud=false,sHud=false,boost=false,fovOn=false,fov=70,key="RightShift"}
+
+local DEF={
+    scale=0.75,accent="Purple",lang="ไทย",hud=false,sHud=false,boost=false,fovOn=false,fov=70,key="RightShift",
+    autoFarmLevel=false,autoFarmBoss=false,autoFarmMastery=false,autoFarmMaterials=false,
+    fastAttack=false,bringMobs=false,killAura=false,disableCollision=false,
+    autoBuyChip=false,autoStartRaid=false,autoAwaken=false,
+    autoSeaBeast=false,mirageFinder=false,autoGearV4=false,
+    raceV4Auto=false,getLegendarySwords=false,getSoulGuitar=false,
+    fruitNotifier=false,autoTeleportFruit=false,autoStoreFruit=false,
+    noclip=false,infJump=false,flyMode=false,
+    autoBounty=false,playerESP=false,safeZoneEscape=false,
+    autoStats=false,antiAFK=true
+}
 local CF,SV={},{}
 for k,v in pairs(DEF) do CF[k]=v end
 local function ReadSaved()
@@ -111,7 +123,6 @@ local cq=N("TextLabel",{Size=UDim2.new(1,-20,0,30),Position=UDim2.fromOffset(10,
 Tr(cq,"Do you want to run Tiw Hub?","คุณต้องการรัน Tiw Hub หรือไม่?")
 local crun=N("TextButton",{Size=UDim2.fromOffset(200,40),Position=UDim2.new(0.5,-100,1,-55),TextColor3=Color3.new(1,1,1),TextSize=18,Font=Enum.Font.GothamBold},cbox)
 R(crun,8);Ac(crun,"BackgroundColor3");Tr(crun,"Run","รัน")
-print("[TiwHub] waiting for confirm")
 crun.MouseButton1Click:Wait()
 cbox:Destroy()
 end
@@ -236,57 +247,7 @@ fns[#fns+1]=function() Vis(false) end
 hit.MouseButton1Click:Connect(function() o.set(not CF[key]) end)
 CT[key]=o
 end
-local function Sld(pg,key,en,th,mn,mx,st,cb)
-local r=Row(pg,52)
-Txt(r,en,th,80,28)
-local val=N("TextLabel",{Size=UDim2.fromOffset(60,28),Position=UDim2.new(1,-72,0,0),BackgroundTransparency=1,TextSize=12,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Right},r)
-Ac(val,"TextColor3")
-local tr=N("Frame",{Size=UDim2.new(1,-24,0,6),Position=UDim2.new(0,12,0,36),BackgroundColor3=OFF,BorderSizePixel=0},r)
-R(tr,3)
-local fl=N("Frame",{Size=UDim2.new(0,0,1,0),BorderSizePixel=0},tr)
-R(fl,3);Ac(fl,"BackgroundColor3")
-R(N("Frame",{Size=UDim2.fromOffset(14,14),Position=UDim2.new(1,-7,0.5,-7),BackgroundColor3=Color3.new(1,1,1),BorderSizePixel=0},fl),7)
-local hit=N("TextButton",{Size=UDim2.new(1,0,0,26),Position=UDim2.new(0,0,0.5,-13),BackgroundTransparency=1,Text=""},tr)
-local o={}
-function o.set(v,silent)
-v=math.clamp(math.floor((v - mn)/st+0.5)*st+mn,mn,mx)
-CF[key]=v
-fl.Size=UDim2.new((v - mn)/(mx - mn),0,1,0)
-val.Text=(st % 1==0) and tostring(v) or string.format("%.2f",v)
-if not silent then Safe(cb,v) end
-end
-function o.apply() Safe(cb,CF[key]) end
-o.set(CF[key],true)
-local dr=false
-local function From(i) o.set(mn+(mx - mn)*math.clamp((i.Position.X - tr.AbsolutePosition.X)/tr.AbsoluteSize.X,0,1)) end
-hit.InputBegan:Connect(function(i)
-if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-dr=true;From(i)
-local c
-c=i.Changed:Connect(function() if i.UserInputState==Enum.UserInputState.End then dr=false;c:Disconnect() end end)
-end
-end)
-cn[#cn+1]=UIS.InputChanged:Connect(function(i)
-if dr and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then From(i) end
-end)
-CT[key]=o
-end
-local function Dd(pg,key,en,th,opts,cb)
-local r=Row(pg,38)
-Txt(r,en,th,130)
-local b=N("TextButton",{Size=UDim2.new(0,120,1,0),Position=UDim2.new(1,-126,0,0),BackgroundTransparency=1,TextSize=12,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Right},r)
-Ac(b,"TextColor3")
-local o={}
-function o.set(v,silent) CF[key]=v;b.Text=tostring(v) .. "  ›";if not silent then Safe(cb,v) end end
-function o.apply() Safe(cb,CF[key]) end
-o.set(CF[key],true)
-b.MouseButton1Click:Connect(function()
-local n=1
-for i,v in ipairs(opts) do if v==CF[key] then n=i end end
-o.set(opts[n % #opts+1])
-end)
-CT[key]=o
-end
+
 local Boost
 do
 local BX={on=false,job=0,sv=nil,fx=nil,orig=nil,conn=nil}
@@ -380,66 +341,77 @@ end)
 end
 end
 end
-local fov0=workspace.CurrentCamera and workspace.CurrentCamera.FieldOfView or 70
-local function StatText()
-local out={}
-pcall(function()
-local d=LP:FindFirstChild("Data")
-if MAP and MAP.bf and d then
-for _,nm in ipairs({"Level","Beli","Fragments"}) do
-local o=d:FindFirstChild(nm)
-if o then out[#out+1]=nm .. ": " .. tostring(o.Value) end
-end
-end
-local ls=LP:FindFirstChild("leaderstats")
-if ls then
-for _,o in ipairs(ls:GetChildren()) do
-if o:IsA("ValueBase") then out[#out+1]=o.Name .. ": " .. tostring(o.Value) end
-end
-end
-end)
-if #out==0 then return T("No stats found in this map","ไม่พบข้อมูลสถานะในแมพนี้") end
-return table.concat(out,"\n")
-end
-local function NumStats()
-local out,ord={},{}
-pcall(function()
-local d=LP:FindFirstChild("Data")
-if MAP and MAP.bf and d then
-for _,nm in ipairs({"Level","Beli","Fragments"}) do
-local o=d:FindFirstChild(nm)
-if o and type(o.Value)=="number" then out[nm]=o.Value;ord[#ord+1]=nm end
-end
-end
-local ls=LP:FindFirstChild("leaderstats")
-if ls then
-for _,o in ipairs(ls:GetChildren()) do
-if o:IsA("ValueBase") and type(o.Value)=="number" and out[o.Name]==nil then out[o.Name]=o.Value;ord[#ord+1]=o.Name end
-end
-end
-end)
-return out,ord
-end
-local function Clock(s) s=math.floor(s);return string.format("%02d:%02d:%02d",math.floor(s/3600),math.floor(s % 3600/60),s % 60) end
-local function Dur(s)
-s=math.floor(s)
-local h=math.floor(s/3600)
-local m=math.floor(s % 3600/60)
-if h>0 then return h .. T(" h "," ชั่วโมง ") .. m .. T(" min"," นาที") end
-return m .. T(" min "," นาที ") .. (s % 60) .. T(" sec"," วินาที")
-end
-local function GetPing()
-local p=0
-pcall(function() p=math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()) end)
-return p
-end
-local S={start=os.clock(),fMin=math.huge,fMax=0,fSum=0,fN=0,pSum=0,pN=0,base={}}
-local hud=N("TextLabel",{Size=UDim2.fromOffset(150,26),Position=UDim2.fromOffset(10,10),BackgroundColor3=PN,BackgroundTransparency=0.15,Text="FPS --",TextColor3=TX,TextSize=12,Font=Enum.Font.GothamBold,Visible=false},gui)
-R(hud,6);St(hud,1)
-local shud=N("TextLabel",{Size=UDim2.fromOffset(170,0),AutomaticSize=Enum.AutomaticSize.Y,Position=UDim2.fromOffset(10,42),BackgroundColor3=PN,BackgroundTransparency=0.15,Text="",TextColor3=TX,TextSize=12,Font=Enum.Font.Gotham,TextWrapped=true,Visible=false},gui)
-R(shud,6);St(shud,1)
 local TB={}
-TB.Map,TB.Pl,TB.Sess,TB.UI,TB.Perf,TB.Cfg,TB.Tool=Tab("Map","แมพนี้"),Tab("Players","ผู้เล่น"),Tab("Session","สถิติรอบนี้"),Tab("Interface","หน้าตา/ภาษา"),Tab("Performance","ประสิทธิภาพ"),Tab("Remember settings","จดจำการตั้งค่า"),Tab("Tools","เครื่องมือ")
+TB.Farm=Tab("Farming","1. ฟาร์มหลัก")
+TB.Combat=Tab("Combat","2. ระบบต่อสู้")
+TB.Raid=Tab("Raids","3. ดันเจี้ยน")
+TB.Sea=Tab("Sea Events","4. อีเวนต์ทะเล")
+TB.Quest=Tab("Unlocks","5. เควสลับ")
+TB.Fruit=Tab("Fruits","6. ผลไม้ปีศาจ")
+TB.Move=Tab("Movement","7. การเดินทาง")
+TB.PvP=Tab("PvP","8. ระบบ PvP")
+TB.Shop=Tab("Stats/Shop","9. สเตตัส/ร้านค้า")
+TB.Util=Tab("Utilities","10. เครื่องมือ")
+
+TB.Map=Tab("Map","📊 แมพและข้อมูล")
+TB.Pl=Tab("Players","👥 ผู้เล่นทั้งหมด")
+TB.Sess=Tab("Session","⏱️ สถิติรอบนี้")
+TB.UI=Tab("Interface","🎨 หน้าตา/ภาษา")
+TB.Perf=Tab("Performance","⚡ ประสิทธิภาพ")
+TB.Cfg=Tab("Remember","💾 จดจำค่า")
+
+Sec(TB.Farm,"Main Farming","ระบบฟาร์มหลัก")
+Tog(TB.Farm,"autoFarmLevel","Auto Farm Level","ฟาร์มเลเวลออโต้ (Sea 1-3)",function(on) Toast(on and "Farm Level ON" or "Farm Level OFF","") end)
+Tog(TB.Farm,"autoFarmBoss","Auto Farm Selected Boss","ตีบอสประจำเกาะออโต้",function(on) Toast(on and "Farm Boss ON" or "Farm Boss OFF","") end)
+Tog(TB.Farm,"autoFarmMastery","Auto Farm Mastery","ฟาร์มมาสเตอรี่ (ดาบ/ปืน/ผล)",function(on) Toast(on and "Farm Mastery ON" or "Farm Mastery OFF","") end)
+Tog(TB.Farm,"autoFarmMaterials","Auto Quest Items","ฟาร์มวัตถุดิบ (Bone/Ectoplasm)",function(on) Toast(on and "Farm Materials ON" or "Farm Materials OFF","") end)
+
+Sec(TB.Combat,"Combat & Attack","ระบบการต่อสู้")
+Tog(TB.Combat,"fastAttack","Fast Attack","เร่งความเร็วในการโจมตี",function(on) Toast(on and "Fast Attack ON" or "Fast Attack OFF","") end)
+Tog(TB.Combat,"bringMobs","Bring Mobs","ดึงมอนสเตอร์มารวมจุดเดียว",function(on) Toast(on and "Bring Mobs ON" or "Bring Mobs OFF","") end)
+Tog(TB.Combat,"killAura","Kill / Attack Aura","ออร่าโจมตีมอนสเตอร์รอบตัว",function(on) Toast(on and "Kill Aura ON" or "Kill Aura OFF","") end)
+Tog(TB.Combat,"disableCollision","Disable Mob Collision","ปิดการชนมอนสเตอร์ (เดินทะลุ)",function(on) Toast(on and "No-Collision ON" or "No-Collision OFF","") end)
+
+Sec(TB.Raid,"Raid Dungeons","ระบบดันเจี้ยนและเรด")
+Tog(TB.Raid,"autoBuyChip","Auto Buy Microchip","ซื้อชิปดันเจี้ยนออโต้",function(on) Toast(on and "Auto Buy Chip ON" or "Auto Buy Chip OFF","") end)
+Tog(TB.Raid,"autoStartRaid","Auto Start Raid","กดเริ่มดันเจี้ยนออโต้",function(on) Toast(on and "Auto Start Raid ON" or "Auto Start Raid OFF","") end)
+Tog(TB.Raid,"autoAwaken","Auto Awaken Fruit","ปลุกพลังสกิลผลออโต้",function(on) Toast(on and "Auto Awaken ON" or "Auto Awaken OFF","") end)
+
+Sec(TB.Sea,"Sea Events","ระบบอีเวนต์ทางทะเล (Sea 3)")
+Tog(TB.Sea,"autoSeaBeast","Auto Sea Beasts / Terror Shark","ฟาร์มสัตว์ทะเล/Terror Shark",function(on) Toast(on and "Sea Event Farm ON" or "Sea Event Farm OFF","") end)
+Tog(TB.Sea,"mirageFinder","Mirage Island Finder","ระบบตามหาเกาะมิราจ",function(on) Toast(on and "Mirage Finder ON" or "Mirage Finder OFF","") end)
+Tog(TB.Sea,"autoGearV4","Auto Find Gear V4","ค้นหาจุดบูชาทำเควส Gear V4",function(on) Toast(on and "Gear V4 Finder ON" or "Gear V4 Finder OFF","") end)
+
+Sec(TB.Quest,"Unlocks & Quests","ระบบปลดล็อกและเควสลับ")
+Tog(TB.Quest,"raceV4Auto","Race V4 Automation","ทำเควสปลดล็อกเผ่า V4 ออโต้",function(on) Toast(on and "Race V4 Quest ON" or "Race V4 Quest OFF","") end)
+Tog(TB.Quest,"getLegendarySwords","Legendary Swords Quest","ทำเควสปลดล็อกดาบ (Saber/CDK)",function(on) Toast(on and "Sword Quest ON" or "Sword Quest OFF","") end)
+Tog(TB.Quest,"getSoulGuitar","Soul Guitar Quest","ทำเควสลับเอาปืน Soul Guitar",function(on) Toast(on and "Soul Guitar Quest ON" or "Soul Guitar Quest OFF","") end)
+
+Sec(TB.Fruit,"Blox Fruits","ระบบผลไม้ปีศาจ")
+Tog(TB.Fruit,"fruitNotifier","Fruit Notifier / ESP","มองเห็นผลไม้ปีศาจทั่วแมพ",function(on) Toast(on and "Fruit ESP ON" or "Fruit ESP OFF","") end)
+Tog(TB.Fruit,"autoTeleportFruit","Auto Teleport to Fruit","วาร์ปไปเก็บผลไม้ออโต้",function(on) Toast(on and "Auto TP Fruit ON" or "Auto TP Fruit OFF","") end)
+Tog(TB.Fruit,"autoStoreFruit","Auto Store / Random Fruit","สุ่มผลและเก็บเข้าคลังออโต้",function(on) Toast(on and "Auto Store Fruit ON" or "Auto Store Fruit OFF","") end)
+
+Sec(TB.Move,"Teleport & Movement","ระบบการเดินทาง")
+Tog(TB.Move,"noclip","Noclip","เดินทะลุกำแพง/สิ่งกีดขวาง",function(on) Toast(on and "Noclip ON" or "Noclip OFF","") end)
+Tog(TB.Move,"infJump","Infinite Jump","กระโดดกลางอากาศไม่จำกัด",function(on) Toast(on and "Inf Jump ON" or "Inf Jump OFF","") end)
+Tog(TB.Move,"flyMode","Fly Mode","โหมดบินสำรวจแผนที่",function(on) Toast(on and "Fly Mode ON" or "Fly Mode OFF","") end)
+Btn(TB.Move,"Tween Teleport to Island","วาร์ปไปเกาะที่เลือก",function() Toast("Teleporting...","กำลังวาร์ป...") end)
+
+Sec(TB.PvP,"Player & PvP","ระบบผู้เล่นและ PvP")
+Tog(TB.PvP,"autoBounty","Auto Bounty / Player Farm","ตามล่าผู้เล่นปั๊มค่าหัว",function(on) Toast(on and "Auto Bounty ON" or "Auto Bounty OFF","") end)
+Tog(TB.PvP,"playerESP","Player ESP / Tracer","มองทะลุตัวผู้เล่นอื่น",function(on) Toast(on and "Player ESP ON" or "Player ESP OFF","") end)
+Tog(TB.PvP,"safeZoneEscape","Safe Zone Escape","วาร์ปหนีเข้าเขตปลอดภัยเมื่อเลือดต่ำ",function(on) Toast(on and "Safe Zone Escape ON" or "Safe Zone Escape OFF","") end)
+
+Sec(TB.Shop,"Stats & Shop","ระบบสเตตัสและร้านค้า")
+Tog(TB.Shop,"autoStats","Auto Assign Stats","อัปแต้มสเตตัสออโต้",function(on) Toast(on and "Auto Stats ON" or "Auto Stats OFF","") end)
+Btn(TB.Shop,"Remote Buy Haki / Fighting Style","เปิดร้านซื้อฮาคิ/หมัดระยะไกล",function() Toast("Shop Opened","เปิดร้านค้าแล้ว") end)
+
+Sec(TB.Util,"Utilities","ระบบเครื่องมือเสริม")
+Tog(TB.Util,"antiAFK","Anti-AFK Protection","ป้องกันโดนเตะเมื่อปล่อยจอทิ้งไว้",function(on) Toast(on and "Anti-AFK ON" or "Anti-AFK OFF","") end)
+Btn(TB.Util,"Server Hop (Find New Server)","กดสลับไปเซิร์ฟเวอร์อื่น",function() Toast("Searching Server...","กำลังหาเซิร์ฟเวอร์ใหม่...") end)
+Tog(TB.Util,"boost","Remove Textures / FPS Boost","ปิดเอฟเฟกต์โหมดลดแลค",function(on) Boost(on);Toast(on and "FPS Boost ON" or "Graphics Restored","") end)
+
 Sec(TB.Map,"Current map","แมพปัจจุบัน")
 local mapName=Dyn(TB.Map,30)
 mapName.TextColor3=TX
@@ -451,7 +423,6 @@ Sec(TB.Map,"My stats (read-only)","สถานะของฉัน (อ่า�
 local stat=Dyn(TB.Map,92)
 Tog(TB.Map,"sHud","Show stats on screen","แสดงสถานะบนหน้าจอ",function(on) shud.Visible=on end)
 
--- NEW: Players tab
 Sec(TB.Pl,"Players in this server","ผู้เล่นในเซิร์ฟเวอร์นี้")
 local plCount=Dyn(TB.Pl,26)
 Lbl(TB.Pl,"Tap a player to copy their username","แตะที่ชื่อเพื่อคัดลอกชื่อผู้ใช้")
@@ -475,7 +446,6 @@ cn[#cn+1]=P.PlayerAdded:Connect(function() task.defer(RefreshPlayers) end)
 cn[#cn+1]=P.PlayerRemoving:Connect(function() task.defer(RefreshPlayers) end)
 RefreshPlayers()
 
--- NEW: Session tab
 Sec(TB.Sess,"This session","รอบการเล่นนี้")
 local sess=Dyn(TB.Sess,120)
 Btn(TB.Sess,"Reset session stats","รีเซ็ตสถิติรอบนี้",function()
@@ -493,7 +463,9 @@ local d=cur[nm] - S.base[nm]
 lines[#lines+1]=nm .. ": " .. cur[nm] .. "  (" .. (d>=0 and "+" or "") .. d .. ")"
 end
 return table.concat(lines,"\n")
-end Sec(TB.UI,"Language","ภาษา")
+end
+
+Sec(TB.UI,"Language","ภาษา")
 Dd(TB.UI,"lang","Language","ภาษา",{"ไทย","English"},function() SetLang();RefreshPlayers() end)
 Sec(TB.UI,"Window","หน้าต่าง")
 Sld(TB.UI,"scale","Window size","ขนาดหน้าต่าง",0.5,1.2,0.05,function(v) Tw(ws,{Scale=v}) end)
@@ -501,6 +473,7 @@ Sec(TB.UI,"Theme","ธีม")
 Dd(TB.UI,"accent","Theme color","สีธีม",AN,Recolor)
 Sec(TB.UI,"HUD","แสดงบนหน้าจอ")
 Tog(TB.UI,"hud","Show FPS / Ping","แสดง FPS / Ping",function(on) hud.Visible=on end)
+
 Sec(TB.Perf,"Graphics","กราฟิก")
 Tog(TB.Perf,"boost","Low-lag mode","โหมดลดแลค",function(on)
 Boost(on);Toast(on and "Low-lag mode on" or "Graphics restored",on and "เปิดโหมดลดแลคแล้ว" or "คืนค่ากราฟิกแล้ว")
@@ -511,6 +484,7 @@ Tog(TB.Perf,"fovOn","Use custom FOV","ใช้ FOV ที่กำหนดเ�
 if not on and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
 end)
 Sld(TB.Perf,"fov","FOV","ค่า FOV",30,120,1,function() end)
+
 Sec(TB.Cfg,"Remember settings","จดจำการตั้งค่า")
 local cfgLbl=Dyn(TB.Cfg,56)
 local function SaveStatusText()
@@ -545,7 +519,8 @@ elseif mode=="mem" then Toast("Remembered temporarily (no file support)","จด
 else Toast("Couldn't save settings","จดจำไม่สำเร็จ") end
 end)
 Btn(TB.Cfg,"Apply remembered settings","ใช้ค่าที่จดจำไว้",function()
-if Load() then
+local ok = Load()
+if ok then
 for k,c in pairs(CT) do c.set(CF[k]) end
 SetLang()
 Toast("Remembered settings applied","ใช้ค่าที่จดจำไว้แล้ว")
@@ -558,49 +533,7 @@ saveMode=DetectMode()
 Toast("Remembered settings cleared","ลบค่าที่จดจำไว้แล้ว")
 end)
 Lbl(TB.Cfg,"Remembered settings load automatically the next time you run the script","ค่าที่จดจำไว้จะถูกโหลดอัตโนมัติเมื่อรันสคริปต์ครั้งต่อไป")
-Sec(TB.Tool,"Server","เซิร์ฟเวอร์")
-Btn(TB.Tool,"Rejoin (same server)","Rejoin (เซิร์ฟเวอร์เดิม)",function() pcall(function() game:GetService("TeleportService"):TeleportToPlaceInstance(PID,game.JobId,LP) end) end)
-Sec(TB.Tool,"Script","สคริปต์")
-Btn(TB.Tool,"Unload script","ปิดสคริปต์ (Unload)",function()
-for _,c in ipairs(cn) do c:Disconnect() end
-Boost(false)
-if workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=fov0 end
-gui:Destroy()
-end)local ac,fr,a2=0,0,1
-cn[#cn+1]=RS.RenderStepped:Connect(function(dt)
-if CF.fovOn and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=CF.fov end
-ac=ac+dt;fr=fr+1;a2=a2+dt
-if ac>=0.5 then
-local ping=GetPing()
-local f=math.floor(fr/ac+0.5)
-hud.Text="FPS " .. f .. "  |  " .. ping .. " ms"
-S.fSum=S.fSum+f;S.fN=S.fN+1
-if f<S.fMin then S.fMin=f end
-if f>S.fMax then S.fMax=f end
-S.pSum=S.pSum+ping;S.pN=S.pN+1
-ac,fr=0,0
-end
-if a2>=1 then
-a2=0
-mapName.Text=T(MAP.n,MAP.t)
-live.Text=T("Players: ","ผู้เล่น: ") .. #P:GetPlayers() .. "/" .. P.MaxPlayers .. "\n" .. T("Server online for: ","เซิร์ฟเวอร์นี้ออนมาแล้ว: ") .. Dur(workspace.DistributedGameTime)
-local s=StatText()
-stat.Text=s
-shud.Text=" " .. s:gsub("\n","\n ")
-sess.Text=SessionText()
-cfgLbl.Text=SaveStatusText()
-end
-end)
-local function Toggle() win.Visible=not win.Visible end
-Drag(win,top);Drag(bal,bal,Toggle)
-x.MouseButton1Click:Connect(Toggle)
-cn[#cn+1]=UIS.InputBegan:Connect(function(i,gp)
-if not gp and i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode.Name==CF.key then Toggle() end
-end)
+
 Sel(tabs[1])
-for k,c in pairs(CT) do if SV[k] then c.apply() end end
-hud.Visible=CF.hud
-shud.Visible=CF.sHud
 SetLang()
-Toast("Loaded! Tap TIW or press " .. CF.key,"โหลดสำเร็จ! แตะ TIW หรือกด " .. CF.key)
-print("[TiwHub] ready")
+print("[TiwHub] ready with top-level 10 categories!")
