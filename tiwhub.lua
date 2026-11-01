@@ -1,482 +1,315 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- =============================================
--- 🎨 สี และตัวช่วยสร้าง UI
--- =============================================
-local COLORS = {
-	accent = Color3.fromRGB(124, 108, 255),
-	bg = Color3.fromRGB(26, 27, 38),
-	bar = Color3.fromRGB(36, 37, 52),
-	row = Color3.fromRGB(38, 40, 56),
-	logBg = Color3.fromRGB(20, 22, 32),
-	logText = Color3.fromRGB(100, 255, 160),
-	textMain = Color3.fromRGB(235, 235, 245),
-	textDim = Color3.fromRGB(150, 150, 170),
-	off = Color3.fromRGB(70, 72, 92),
-	on = Color3.fromRGB(70, 200, 120),
-}
+-- ===== สร้างหน้าจอหลัก =====
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FeatureMenu"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
 
--- สร้าง Instance พร้อมตั้งค่าหลายอย่างในครั้งเดียว
-local function make(className, props, parent)
-	local inst = Instance.new(className)
-	for k, v in pairs(props) do
-		inst[k] = v
-	end
-	inst.Parent = parent
-	return inst
-end
+-- ปุ่มเปิดเมนู
+local OpenBtn = Instance.new("TextButton")
+OpenBtn.Size = UDim2.new(0, 140, 0, 45)
+OpenBtn.Position = UDim2.new(0.02, 0, 0.02, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(124, 108, 255)
+OpenBtn.Text = "📖 เมนูฟีเจอร์"
+OpenBtn.TextColor3 = Color3.new(1,1,1)
+OpenBtn.TextSize = 14
+OpenBtn.Font = Enum.Font.GothamBold
+OpenBtn.Parent = ScreenGui
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(0, 8)
 
-local function corner(inst, radius)
-	make("UICorner", { CornerRadius = UDim.new(0, radius) }, inst)
-end
+-- หน้าต่างเมนู
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 380, 0, 460)
+MainFrame.Position = UDim2.new(0.5, -190, 0.5, -230)
+MainFrame.BackgroundColor3 = Color3.fromRGB(26, 27, 38)
+MainFrame.Visible = false
+MainFrame.Parent = ScreenGui
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 
--- =============================================
--- 📂 ข้อมูลหมวดหมู่และฟีเจอร์ (data-driven)
--- on / off = ข้อความที่จะบันทึกลงล็อกเมื่อเปิด / ปิด
--- real = true แปลว่ามีผลจริง (มีฟังก์ชันของตัวเองใน Simulations)
--- =============================================
-local Categories = {
-	{
-		name = "ฟาร์ม", icon = "🌾",
-		items = {
-			{ key = "AutoFarm", name = "Auto Farm Level", desc = "จำลอง: รับเควส -> ตีมอน -> เช็คเลเวล -> วนซ้ำ",
-				on = "🌾 Auto Farm → เริ่มทำงาน: รับเควส -> ตีมอน -> อัปเดตสถานะ", off = "🌾 Auto Farm → หยุดทำงาน" },
-			{ key = "AutoBoss", name = "Auto Farm Boss", desc = "จำลอง: ค้นหาตำแหน่งบอส -> เดินไป -> ตี -> รับรางวัล",
-				on = "👹 Auto Boss → ค้นหาบอส... พบแล้ว! กำลังเดินไปยังตำแหน่ง", off = "👹 Auto Boss → หยุดค้นหาบอส" },
-			{ key = "AutoMastery", name = "Auto Farm Mastery", desc = "จำลอง: ใช้อาวุธตีมอนเพื่อเพิ่มค่าความชำนาญ",
-				on = "⚔️ Mastery → เริ่มฝึกฝนอาวุธ: เพิ่มค่าความชำนาญ", off = "⚔️ Mastery → หยุดฝึกฝน" },
-			{ key = "AutoQuestItems", name = "Auto Quest Items", desc = "จำลอง: ค้นหาไอเทมเควส -> เก็บ -> นับจำนวน",
-				on = "📦 Quest Items → กำลังรวบรวมไอเทมเควส... [5/10 ชิ้น]", off = "📦 Quest Items → หยุดรวบรวม" },
-		},
-	},
-	{
-		name = "ต่อสู้", icon = "⚔️",
-		items = {
-			{ key = "FastAttack", name = "Fast Attack", desc = "จำลอง: ลดหน่วงเวลาระหว่างการโจมตี",
-				on = "⚡ Fast Attack → ลดหน่วงการโจมตีลง 50%", off = "⚡ Fast Attack → คืนค่าความเร็วปกติ" },
-			{ key = "BringMobs", name = "Bring Mobs", desc = "จำลอง: รวมมอนสเตอร์ที่อยู่ใกล้ให้เป็นกลุ่มเดียว",
-				on = "🎯 Bring Mobs → ดึงมอนสเตอร์ในรัศมี 50 หน่วยมารวมจุด", off = "🎯 Bring Mobs → หยุดรวบรวมมอนสเตอร์" },
-			{ key = "KillAura", name = "Kill Aura", desc = "จำลอง: ตรวจจับศัตรูในระยะ -> โจมตีอัตโนมัติ",
-				on = "💥 Kill Aura → ตรวจพบศัตรูในระยะ 15 หน่วย — โจมตีอัตโนมัติ", off = "💥 Kill Aura → หยุดโจมตีอัตโนมัติ" },
-			{ key = "NoCollision", name = "No Collision", desc = "จำลอง: ปิดการชนกับมอนสเตอร์",
-				on = "👻 No Collision → ปิดการชนกับมอนสเตอร์แล้ว", off = "👻 No Collision → เปิดการชนกับมอนสเตอร์" },
-		},
-	},
-	{
-		name = "ดันเจี้ยน", icon = "🏛️",
-		items = {
-			{ key = "AutoBuyChip", name = "Auto Buy Microchip", desc = "จำลอง: ตรวจสอบเงิน -> ซื้อไอเทมจาก NPC",
-				on = "💳 Auto Buy → ตรวจสอบเงิน: เพียงพอ → ซื้อชิปเปิดดันเจี้ยนสำเร็จ", off = "💳 Auto Buy → หยุดซื้ออัตโนมัติ" },
-			{ key = "AutoRaid", name = "Auto Start Raid", desc = "จำลอง: รอครบจำนวน -> กดเริ่มเรด -> เข้าดันเจี้ยน",
-				on = "🏛️ Auto Raid → รอผู้เล่นครบ... เริ่มเรดแล้ว!", off = "🏛️ Auto Raid → หยุดเข้าเรดอัตโนมัติ" },
-			{ key = "AutoAwaken", name = "Auto Awaken Fruit", desc = "จำลอง: ทำเควสเรด -> ปลดล็อกสกิล -> อัปเกรดผลไม้",
-				on = "✨ Awaken → ปลุกพลังสกิลที่ 1/5 สำเร็จ — กำลังทำเควสต่อ", off = "✨ Awaken → หยุดปลุกพลัง" },
-		},
-	},
-	{
-		name = "ทะเล", icon = "🌊",
-		items = {
-			{ key = "SeaBeast", name = "Auto Sea Beasts", desc = "จำลอง: ตรวจจับสัตว์ทะเล -> ว่ายไป -> จัดการ -> รับของ",
-				on = "🌊 Sea Beast → พบสัตว์ทะเลทางทิศตะวันออก 2 กม. — กำลังเข้าหา", off = "🌊 Sea Beast → หยุดล่าสัตว์ทะเล" },
-			{ key = "MirageFinder", name = "Mirage Island Finder", desc = "จำลอง: ตรวจสอบตำแหน่งเกาะลึกลับ -> แจ้งเตือน",
-				on = "🏝️ Mirage → ตรวจพบสัญญาณเกาะมิราจ! ทิศทาง: ตะวันตกเฉียงเหนือ", off = "🏝️ Mirage → หยุดค้นหา" },
-			{ key = "V4Quest", name = "Auto Find Gear V4", desc = "จำลอง: ค้นหาจุดบูชา -> ทำตามเงื่อนไข -> ปลดล็อกเผ่า",
-				on = "🔮 V4 Quest → เงื่อนไขครบ 3/5 — กำลังไปยังจุดบูชา", off = "🔮 V4 Quest → หยุดทำเควส" },
-			{ key = "LegendSwords", name = "Legendary Swords Quest", desc = "จำลอง: ตรวจเงื่อนไขเควสดาบ -> ไล่ทำทีละขั้น",
-				on = "🗡️ Legendary Swords → ตรวจเงื่อนไขเควส: ขั้นที่ 1/4", off = "🗡️ Legendary Swords → หยุดทำเควสดาบ" },
-			{ key = "SoulGuitar", name = "Soul Guitar Quest", desc = "จำลอง: ทำเควสลับในปราสาทตามลำดับ",
-				on = "🎸 Soul Guitar → เริ่มเควสลับ: ขั้นที่ 1/6", off = "🎸 Soul Guitar → หยุดทำเควส" },
-		},
-	},
-	{
-		name = "ผลไม้", icon = "🍎",
-		items = {
-			{ key = "FruitNotify", name = "Fruit Notifier", desc = "จำลอง: ตรวจพบผลไม้เกิดใหม่ -> แจ้งเตือนตำแหน่ง",
-				on = "🍎 Fruit Notify → ผลไม้เกิดใหม่! ประเภท: ทั่วไป ที่พิกัด (120, 8, -45)", off = "🍎 Fruit Notify → หยุดแจ้งเตือน" },
-			{ key = "FruitTeleport", name = "Auto Teleport to Fruit", desc = "จำลอง: วาร์ปไปยังตำแหน่งผลไม้ทันที",
-				on = "🌀 Fruit TP → วาร์ปไปยังตำแหน่งผลไม้ทันที", off = "🌀 Fruit TP → หยุดวาร์ปอัตโนมัติ" },
-			{ key = "FruitStorage", name = "Auto Store Fruit", desc = "จำลอง: เก็บผลไม้เข้าคลัง -> บันทึกรายการ",
-				on = "📦 Fruit Storage → เก็บผลไม้เข้าคลังแล้ว [มีอยู่ 8 ชิ้น]", off = "📦 Fruit Storage → หยุดเก็บอัตโนมัติ" },
-		},
-	},
-	{
-		name = "เดินทาง", icon = "🚀",
-		items = {
-			{ key = "TweenTp", name = "Tween Teleport", desc = "จำลอง: เคลื่อนที่อย่างราบรื่นไปยังจุดหมาย",
-				on = "🪂 Tween TP → เคลื่อนที่ราบรื่นไปยังจุดหมาย...", off = "🪂 Tween TP → ปิดโหมดวาร์ปราบรื่น" },
-			{ key = "Noclip", name = "Noclip", desc = "จำลอง: ปิดการชนกับวัตถุ -> เดินทะลุได้",
-				on = "🔲 Noclip → ปิดการชนกับวัตถุ — เดินทะลุกำแพงได้", off = "🔲 Noclip → เปิดการชนกับวัตถุปกติ" },
-			{ key = "InfiniteJump", name = "Infinite Jump", desc = "จำลอง: รับอินพุตกระโดด -> กระโดดซ้ำกลางอากาศ",
-				on = "⬆️ Infinite Jump → กระโดดกลางอากาศได้ไม่จำกัด!", off = "⬆️ Infinite Jump → กลับสู่การกระโดดปกติ" },
-			{ key = "Fly", name = "Fly Mode", desc = "จำลอง: ปรับความสูงตำแหน่งตามปุ่มกด",
-				on = "🕊️ Fly Mode → กด W/A/S/D เพื่อเคลื่อนที่, Space เพื่อขึ้น, Shift เพื่อลง", off = "🕊️ Fly Mode → ลงจอดและปิดโหมดบิน" },
-		},
-	},
-	{
-		name = "ผู้เล่น", icon = "🧍",
-		items = {
-			{ key = "PlayerESP", name = "Player ESP", desc = "จำลอง: ไฮไลต์ตำแหน่ง เลือด และค่าหัวของผู้เล่น",
-				on = "👁️ Player ESP → แสดงตำแหน่งและเลือดผู้เล่นรอบตัว (3 คน)", off = "👁️ Player ESP → ซ่อนข้อมูลผู้เล่น" },
-			{ key = "SafeEscape", name = "Safe Zone Escape", desc = "จำลอง: เลือดต่ำกว่าเกณฑ์ -> ไปเขตปลอดภัย",
-				on = "🏥 Safe Escape → เฝ้าดูเลือด: ต่ำกว่า 30% จะไปเขตปลอดภัย", off = "🏥 Safe Escape → ปิดการหนีอัตโนมัติ" },
-			{ key = "AutoStats", name = "Auto Assign Stats", desc = "จำลอง: แจกแต้มสเตตัสตามที่ตั้งค่าไว้",
-				on = "📊 Auto Stats → แจกแต้ม: Melee 50% / Defense 50%", off = "📊 Auto Stats → หยุดแจกแต้ม" },
-			{ key = "RemoteShop", name = "Remote Shop", desc = "จำลอง: เปิดหน้าร้านค้าจากระยะไกล",
-				on = "🛒 Remote Shop → เปิดหน้าร้านค้าแล้ว", off = "🛒 Remote Shop → ปิดหน้าร้านค้า" },
-		},
-	},
-	{
-		name = "เครื่องมือ", icon = "🛠️",
-		items = {
-			{ key = "AntiAFK", name = "Anti-AFK", desc = "จำลอง: ส่งอินพุตเล็กๆ ทุกๆ 2 นาที เพื่อไม่ให้หลุด",
-				on = "🛡️ Anti-AFK → ทำงานอยู่: ส่งสัญญาณค้างไว้ทุก 2 นาที", off = "🛡️ Anti-AFK → ปิดการป้องกัน" },
-			{ key = "FPSBoost", name = "FPS Boost", desc = "ทำจริง: ลดคุณภาพแสง/เงา/เอฟเฟกต์ให้เกมลื่นขึ้น", real = true },
-			{ key = "ServerHop", name = "Server Hop", desc = "จำลอง: แสดงรายการเซิร์ฟเวอร์อื่น -> สลับเซิร์ฟ",
-				on = "🔁 Server Hop → ค้นหาเซิร์ฟเวอร์อื่น... พบ 5 เซิร์ฟเวอร์", off = "🔁 Server Hop → ยกเลิกการสลับเซิร์ฟเวอร์" },
-		},
-	},
-}
+-- แถบชื่อเรื่อง
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 45)
+TitleBar.BackgroundColor3 = Color3.fromRGB(36, 37, 52)
+TitleBar.Parent = MainFrame
+Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0, 12)
 
--- =============================================
--- 📊 State — เก็บสถานะของทุกฟีเจอร์ (สร้างจาก Categories อัตโนมัติ)
--- =============================================
-local State = {
-	Open = false,
-	CurrentCategory = nil,
-	Settings = {},
-}
-for _, cat in ipairs(Categories) do
-	for _, item in ipairs(cat.items) do
-		State.Settings[item.key] = false
-	end
-end
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -60, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "📖 โครงสร้างฟีเจอร์ — เพื่อการเรียนรู้"
+Title.TextColor3 = Color3.fromRGB(124, 108, 255)
+Title.TextSize = 14
+Title.Font = Enum.Font.GothamBold
+Title.Parent = TitleBar
 
--- =============================================
--- 🎨 สร้างหน้าจอและเมนู
--- =============================================
-local ScreenGui = make("ScreenGui", { Name = "StudyMenu", ResetOnSpawn = false }, PlayerGui)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 45, 0, 30)
+CloseBtn.Position = UDim2.new(1, -50, 0, 8)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(150, 150, 170)
+CloseBtn.TextSize = 20
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TitleBar
 
-local OpenBtn = make("TextButton", {
-	Size = UDim2.new(0, 130, 0, 45),
-	Position = UDim2.new(0.02, 0, 0.02, 0),
-	BackgroundColor3 = COLORS.accent,
-	Text = "📖 เมนูเรียนรู้",
-	TextColor3 = Color3.new(1, 1, 1),
-	TextSize = 14,
-	Font = Enum.Font.GothamBold,
-}, ScreenGui)
-corner(OpenBtn, 8)
-
--- พื้นที่แสดงบันทึกการทำงาน
-local LogDisplay = make("TextLabel", {
-	Size = UDim2.new(0, 300, 0, 130),
-	Position = UDim2.new(0.02, 0, 0.10, 0),
-	BackgroundColor3 = COLORS.logBg,
-	BackgroundTransparency = 0.1,
-	TextColor3 = COLORS.logText,
-	TextSize = 10,
-	Font = Enum.Font.Code,
-	TextXAlignment = Enum.TextXAlignment.Left,
-	TextYAlignment = Enum.TextYAlignment.Top,
-	TextWrapped = true,
-	ClipsDescendants = true,
-	Text = "",
-}, ScreenGui)
-corner(LogDisplay, 8)
-make("UIPadding", {
-	PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8),
-	PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6),
-}, LogDisplay)
-
--- หน้าต่างเมนูหลัก
-local MainFrame = make("Frame", {
-	Size = UDim2.new(0, 360, 0, 440),
-	Position = UDim2.new(0.5, -180, 0.5, -220),
-	BackgroundColor3 = COLORS.bg,
-	Visible = false,
-}, ScreenGui)
-corner(MainFrame, 12)
-
-local TitleBar = make("Frame", {
-	Size = UDim2.new(1, 0, 0, 45),
-	BackgroundColor3 = COLORS.bar,
-}, MainFrame)
-corner(TitleBar, 12)
-
-make("TextLabel", {
-	Size = UDim2.new(1, -60, 1, 0),
-	Position = UDim2.new(0, 15, 0, 0),
-	BackgroundTransparency = 1,
-	Text = "📖 เมนูเรียนรู้ — ทดสอบการทำงาน",
-	TextColor3 = COLORS.accent,
-	TextSize = 15,
-	Font = Enum.Font.GothamBold,
-	TextXAlignment = Enum.TextXAlignment.Left,
-}, TitleBar)
-
-local CloseBtn = make("TextButton", {
-	Size = UDim2.new(0, 45, 0, 30),
-	Position = UDim2.new(1, -50, 0, 8),
-	BackgroundTransparency = 1,
-	Text = "✕",
-	TextColor3 = COLORS.textDim,
-	TextSize = 20,
-	Font = Enum.Font.GothamBold,
-}, TitleBar)
-
--- แถบหมวดหมู่ (เลื่อนซ้าย-ขวาได้)
-local TabContainer = make("ScrollingFrame", {
-	Size = UDim2.new(1, -10, 0, 40),
-	Position = UDim2.new(0, 5, 0, 52),
-	BackgroundTransparency = 1,
-	BorderSizePixel = 0,
-	ScrollBarThickness = 0,
-	ScrollingDirection = Enum.ScrollingDirection.X,
-	CanvasSize = UDim2.new(),
-	AutomaticCanvasSize = Enum.AutomaticSize.X,
-}, MainFrame)
-make("UIListLayout", {
-	FillDirection = Enum.FillDirection.Horizontal,
-	Padding = UDim.new(0, 6),
-	VerticalAlignment = Enum.VerticalAlignment.Center,
-}, TabContainer)
+-- แถบหมวดหมู่
+local TabContainer = Instance.new("Frame")
+TabContainer.Size = UDim2.new(1, -10, 0, 40)
+TabContainer.Position = UDim2.new(0, 5, 0, 55)
+TabContainer.BackgroundTransparency = 1
+TabContainer.Parent = MainFrame
 
 -- พื้นที่เนื้อหา
-local ContentFrame = make("ScrollingFrame", {
-	Size = UDim2.new(1, -20, 1, -110),
-	Position = UDim2.new(0, 10, 0, 100),
-	BackgroundTransparency = 1,
-	BorderSizePixel = 0,
-	ScrollBarThickness = 4,
-	CanvasSize = UDim2.new(),
-	AutomaticCanvasSize = Enum.AutomaticSize.Y,
-}, MainFrame)
-make("UIListLayout", {
-	Padding = UDim.new(0, 6),
-	SortOrder = Enum.SortOrder.LayoutOrder,
-}, ContentFrame)
+local ContentFrame = Instance.new("ScrollingFrame")
+ContentFrame.Size = UDim2.new(1, -20, 1, -110)
+ContentFrame.Position = UDim2.new(0, 10, 0, 105)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ScrollBarThickness = 4
+ContentFrame.CanvasSize = UDim2.new()
+ContentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ContentFrame.Parent = MainFrame
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Padding = UDim.new(0, 6)
+ListLayout.Parent = ContentFrame
 
 -- =============================================
--- 📝 ระบบบันทึกการทำงาน — เก็บข้อความล่าสุดเป็นคิว
+-- 📂 ข้อมูลหมวดหมู่และฟีเจอร์ — ตามรายการที่ส่งมา
 -- =============================================
-local MAX_LOG_LINES = 9
-local logLines = {}
+local Categories = {
+    {
+        name = "ฟาร์ม", icon = "🌾",
+        items = {
+            "Auto Farm Level — เก็บเลเวลอัตโนมัติ",
+            "Auto Farm Boss / Selected Boss — ตีบอสอัตโนมัติ",
+            "Auto Farm Mastery — ฝึกฝนอาวุธ/ผลไม้",
+            "Auto Quest Items — เก็บไอเทมภารกิจ"
+        }
+    },
+    {
+        name = "ต่อสู้", icon = "⚔️",
+        items = {
+            "Fast Attack — เร่งความเร็วโจมตี",
+            "Bring Mobs — ดึงมอนสเตอร์มารวมกัน",
+            "Kill Aura / Attack Aura — โจมตีรอบตัว",
+            "Disable Mob Collision — ปิดการชนกับมอนสเตอร์"
+        }
+    },
+    {
+        name = "ดันเจี้ยน", icon = "🏛️",
+        items = {
+            "Auto Buy Microchip — ซื้อชิปเปิดดันเจี้ยน",
+            "Auto Start Raid — เริ่มเรดอัตโนมัติ",
+            "Auto Awaken Fruit — ปลุกพลังผลไม้"
+        }
+    },
+    {
+        name = "ทะเล", icon = "🌊",
+        items = {
+            "Auto Sea Beasts / Terror Shark — ล่าสัตว์ทะเล",
+            "Mirage Island Finder — ค้นหาเกาะมิราจ",
+            "Auto Find Gear V4 — ค้นหาจุดบูชา V4"
+        }
+    },
+    {
+        name = "ปลดล็อก", icon = "🔓",
+        items = {
+            "Race V4 Automation — เควสอัปเกรดเผ่า V4",
+            "Legendary Swords — ดาบพิเศษทั้งหมด",
+            "Soul Guitar Quest — เควสปืนกีตาร์โซล"
+        }
+    },
+    {
+        name = "ผลไม้", icon = "🍎",
+        items = {
+            "Fruit Notifier / ESP — แจ้งเตือนผลไม้",
+            "Auto Teleport to Fruit — วาร์ปไปเก็บผลไม้",
+            "Auto Store / Random Fruit — เก็บและสุ่มผลไม้"
+        }
+    },
+    {
+        name = "เดินทาง", icon = "🚀",
+        items = {
+            "Tween Teleport — วาร์ปราบรื่น",
+            "Noclip — ทะลุกำแพง",
+            "Infinite Jump & Fly — กระโดดไม่จำกัดและบิน"
+        }
+    },
+    {
+        name = "ผู้เล่น & PvP", icon = "👥",
+        items = {
+            "Auto Bounty / Player Farm — ล่าค่าหัว",
+            "Player ESP / Tracer — มองเห็นผู้เล่น",
+            "Safe Zone Escape — หนีเข้าเขตปลอดภัยอัตโนมัติ"
+        }
+    },
+    {
+        name = "สเตตัส & ร้านค้า", icon = "📊",
+        items = {
+            "Auto Assign Stats — จ่ายค่าสเตตัสอัตโนมัติ",
+            "Remote Shop — เปิดร้านค้าจากระยะไกล"
+        }
+    },
+    {
+        name = "เครื่องมือ", icon = "🛠️",
+        items = {
+            "Anti-AFK — ป้องกันหลุดจากเซิร์ฟ",
+            "Server Hop — เปลี่ยนเซิร์ฟเวอร์",
+            "Remove Textures / FPS Boost — เพิ่มความลื่น"
+        }
+    }
+}
 
-local function AddLog(text)
-	table.insert(logLines, 1, "[" .. os.date("%H:%M:%S") .. "] " .. text)
-	while #logLines > MAX_LOG_LINES do
-		table.remove(logLines) -- ลบบรรทัดที่เก่าที่สุดออก
-	end
-	LogDisplay.Text = "📋 บันทึกการทำงาน:\n" .. table.concat(logLines, "\n")
-	print("[เมนูเรียนรู้] " .. text)
+local tabs = {}
+local currentCat = nil
+local selectedColor = Color3.fromRGB(124, 108, 255)
+local normalColor = Color3.fromRGB(45, 47, 65)
+
+-- ===== สร้างปุ่มหมวดหมู่ =====
+local function CreateCategoryTabs()
+    for _, c in ipairs(TabContainer:GetChildren()) do
+        if c:IsA("TextButton") then c:Destroy() end
+    end
+    tabs = {}
+    
+    for i, cat in ipairs(Categories) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 62, 1, 0)
+        btn.Position = UDim2.new(0, (i-1)*66, 0, 0)
+        btn.BackgroundColor3 = normalColor
+        btn.Text = cat.icon
+        btn.TextColor3 = Color3.new(0.8, 0.8, 0.9)
+        btn.TextSize = 18
+        btn.Font = Enum.Font.GothamBold
+        btn.Parent = TabContainer
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        
+        btn.MouseButton1Click:Connect(function()
+            for _, b in ipairs(tabs) do
+                b.BackgroundColor3 = normalColor
+                b.TextColor3 = Color3.new(0.8, 0.8, 0.9)
+            end
+            btn.BackgroundColor3 = selectedColor
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            currentCat = cat
+            UpdateContent()
+        end)
+        
+        tabs[i] = btn
+    end
 end
 
--- =============================================
--- 🔧 Simulations — ตารางฟังก์ชัน key -> ฟังก์ชัน(on)
--- ฟีเจอร์จำลองถูกสร้างจากข้อความ on/off ใน Categories อัตโนมัติ
--- ฟีเจอร์ที่ทำจริง (real = true) เขียนฟังก์ชันของตัวเองข้างล่าง
--- =============================================
-local Simulations = {}
-
-for _, cat in ipairs(Categories) do
-	for _, item in ipairs(cat.items) do
-		if not item.real then
-			Simulations[item.key] = function(on)
-				AddLog(on and item.on or item.off)
-			end
-		end
-	end
+-- ===== อัปเดตเนื้อหาตามหมวดหมู่ =====
+function UpdateContent()
+    for _, c in ipairs(ContentFrame:GetChildren()) do
+        if c:IsA("Frame") or c:IsA("TextLabel") then c:Destroy() end
+    end
+    
+    if not currentCat then return end
+    
+    -- หัวข้อหมวด
+    local Header = Instance.new("TextLabel")
+    Header.Size = UDim2.new(1, 0, 0, 32)
+    Header.BackgroundTransparency = 1
+    Header.Text = currentCat.icon .. "  " .. currentCat.name
+    Header.TextColor3 = selectedColor
+    Header.TextSize = 15
+    Header.Font = Enum.Font.GothamBold
+    Header.TextXAlignment = Enum.TextXAlignment.Left
+    Header.Parent = ContentFrame
+    
+    -- รายการฟีเจอร์
+    for _, item in ipairs(currentCat.items) do
+        local ItemFrame = Instance.new("Frame")
+        ItemFrame.Size = UDim2.new(1, 0, 0, 42)
+        ItemFrame.BackgroundColor3 = Color3.fromRGB(38, 40, 58)
+        ItemFrame.Parent = ContentFrame
+        Instance.new("UICorner", ItemFrame).CornerRadius = UDim.new(0, 6)
+        
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, -60, 1, 0)
+        Label.Position = UDim2.new(0, 12, 0, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = "○  " .. item
+        Label.TextColor3 = Color3.new(0.85, 0.85, 0.9)
+        Label.TextSize = 12
+        Label.Font = Enum.Font.Gotham
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.Parent = ItemFrame
+        
+        -- ปุ่มสวิตช์ (แสดงเฉยๆ ไม่มีฟังก์ชัน)
+        local ToggleBg = Instance.new("Frame")
+        ToggleBg.Size = UDim2.new(0, 42, 0, 24)
+        ToggleBg.Position = UDim2.new(1, -54, 0.5, -12)
+        ToggleBg.BackgroundColor3 = Color3.fromRGB(60, 62, 80)
+        ToggleBg.Parent = ItemFrame
+        Instance.new("UICorner", ToggleBg).CornerRadius = UDim.new(0, 12)
+        
+        local ToggleDot = Instance.new("Frame")
+        ToggleDot.Size = UDim2.new(0, 18, 0, 18)
+        ToggleDot.Position = UDim2.new(0, 3, 0.5, -9)
+        ToggleDot.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
+        ToggleDot.Parent = ToggleBg
+        Instance.new("UICorner", ToggleDot).CornerRadius = UDim.new(0, 9)
+        
+        local ToggleBtn = Instance.new("TextButton")
+        ToggleBtn.Size = UDim2.new(1, 0, 1, 0)
+        ToggleBtn.BackgroundTransparency = 1
+        ToggleBtn.Parent = ItemFrame
+        
+        local isOn = false
+        ToggleBtn.MouseButton1Click:Connect(function()
+            isOn = not isOn
+            local targetColor = isOn and selectedColor or Color3.fromRGB(60, 62, 80)
+            local dotPos = isOn and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+            TweenService:Create(ToggleBg, TweenInfo.new(0.15), {BackgroundColor3 = targetColor}):Play()
+            TweenService:Create(ToggleDot, TweenInfo.new(0.15), {Position = dotPos}):Play()
+        end)
+    end
 end
 
--- ✅ FPS Boost: ทำงานจริง และคืนค่าเดิมเมื่อปิด
-local fpsSaved = nil
-
-Simulations.FPSBoost = function(on)
-	if on then
-		if fpsSaved then
-			return
-		end
-		fpsSaved = {
-			shadows = Lighting.GlobalShadows,
-			effects = {},
-		}
-		pcall(function()
-			fpsSaved.quality = settings().Rendering.QualityLevel
-		end)
-
-		Lighting.GlobalShadows = false
-		for _, child in ipairs(Lighting:GetChildren()) do
-			-- PostEffect = Bloom, Blur, SunRays, ColorCorrection, DepthOfField
-			if child:IsA("PostEffect") and child.Enabled then
-				table.insert(fpsSaved.effects, child)
-				child.Enabled = false
-			end
-		end
-		pcall(function()
-			settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-		end)
-		AddLog("🚀 FPS Boost → ปิดเงา/เอฟเฟกต์แล้ว — เกมควรลื่นขึ้น!")
-	else
-		if not fpsSaved then
-			return
-		end
-		Lighting.GlobalShadows = fpsSaved.shadows
-		for _, effect in ipairs(fpsSaved.effects) do
-			effect.Enabled = true
-		end
-		if fpsSaved.quality then
-			pcall(function()
-				settings().Rendering.QualityLevel = fpsSaved.quality
-			end)
-		end
-		fpsSaved = nil
-		AddLog("🚀 FPS Boost → คืนค่าแสง/เงา/เอฟเฟกต์เดิมแล้ว")
-	end
+-- ===== เริ่มต้นแสดงหมวดแรก =====
+CreateCategoryTabs()
+if #tabs > 0 then
+    currentCat = Categories[1]
+    tabs[1].BackgroundColor3 = selectedColor
+    tabs[1].TextColor3 = Color3.new(1, 1, 1)
+    UpdateContent()
 end
 
--- =============================================
--- 🔘 BuildToggle — สร้างแถวสวิตช์จากข้อมูลของฟีเจอร์
--- =============================================
-local function BuildToggle(item, order)
-	local row = make("Frame", {
-		Size = UDim2.new(1, -8, 0, 62),
-		BackgroundColor3 = COLORS.row,
-		LayoutOrder = order,
-	}, ContentFrame)
-	corner(row, 8)
-
-	make("TextLabel", {
-		Size = UDim2.new(1, -90, 0, 22),
-		Position = UDim2.new(0, 10, 0, 6),
-		BackgroundTransparency = 1,
-		Text = item.name,
-		TextColor3 = COLORS.textMain,
-		TextSize = 13,
-		Font = Enum.Font.GothamBold,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	}, row)
-
-	make("TextLabel", {
-		Size = UDim2.new(1, -90, 0, 30),
-		Position = UDim2.new(0, 10, 0, 28),
-		BackgroundTransparency = 1,
-		Text = item.desc,
-		TextColor3 = COLORS.textDim,
-		TextSize = 10,
-		Font = Enum.Font.Gotham,
-		TextWrapped = true,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Top,
-	}, row)
-
-	local switch = make("TextButton", {
-		Size = UDim2.new(0, 62, 0, 28),
-		Position = UDim2.new(1, -72, 0.5, -14),
-		TextColor3 = Color3.new(1, 1, 1),
-		TextSize = 12,
-		Font = Enum.Font.GothamBold,
-		AutoButtonColor = false,
-	}, row)
-	corner(switch, 14)
-
-	-- อัปเดตหน้าตาสวิตช์ให้ตรงกับ State
-	local function refresh()
-		local on = State.Settings[item.key]
-		switch.Text = on and "เปิด" or "ปิด"
-		TweenService:Create(switch, TweenInfo.new(0.15), {
-			BackgroundColor3 = on and COLORS.on or COLORS.off,
-		}):Play()
-	end
-
-	switch.MouseButton1Click:Connect(function()
-		local on = not State.Settings[item.key] -- กลับค่า
-		State.Settings[item.key] = on -- 1) เก็บลง State
-		refresh() -- 2) อัปเดต UI
-		local ok, err = pcall(Simulations[item.key], on) -- 3) เรียกฟังก์ชันของฟีเจอร์
-		if not ok then
-			AddLog("⚠️ " .. item.name .. " ผิดพลาด: " .. tostring(err))
-		end
-	end)
-
-	refresh()
+-- ===== เปิด-ปิดเมนู =====
+local isOpen = false
+local function Toggllocal()
+    isOpen = not isOpen
+    MainFrame.Visible = isOpen
 end
 
--- =============================================
--- 📑 หมวดหมู่ — แท็บและการสลับหน้า
--- =============================================
-local tabButtons = {}
+OpenBtn.MouseButton1Click:Connect(ToggleMenu)
+CloseBtn.MouseButton1Click:Connect(ToggleMenu)
 
-local function ShowCategory(cat)
-	State.CurrentCategory = cat.name
-
-	-- ล้างแถวเก่า (เก็บ UIListLayout ไว้)
-	for _, child in ipairs(ContentFrame:GetChildren()) do
-		if child:IsA("Frame") then
-			child:Destroy()
-		end
-	end
-
-	for i, item in ipairs(cat.items) do
-		BuildToggle(item, i)
-	end
-	ContentFrame.CanvasPosition = Vector2.new(0, 0)
-
-	-- ไฮไลต์แท็บที่เลือก
-	for name, btn in pairs(tabButtons) do
-		btn.BackgroundColor3 = (name == cat.name) and COLORS.accent or COLORS.bar
-	end
-end
-
-for _, cat in ipairs(Categories) do
-	local btn = make("TextButton", {
-		Size = UDim2.new(0, 92, 0, 32),
-		BackgroundColor3 = COLORS.bar,
-		Text = cat.icon .. " " .. cat.name,
-		TextColor3 = Color3.new(1, 1, 1),
-		TextSize = 12,
-		Font = Enum.Font.GothamSemibold,
-		AutoButtonColor = false,
-	}, TabContainer)
-	corner(btn, 8)
-	tabButtons[cat.name] = btn
-	btn.MouseButton1Click:Connect(function()
-		ShowCategory(cat)
-	end)
-end
-
--- =============================================
--- 🪟 เปิด/ปิดเมนู
--- =============================================
-local function SetOpen(open)
-	State.Open = open
-	MainFrame.Visible = open
-end
-
-OpenBtn.MouseButton1Click:Connect(function()
-	SetOpen(not State.Open)
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.M then
+        ToggleMenu()
+    end
 end)
 
-CloseBtn.MouseButton1Click:Connect(function()
-	SetOpen(false)
-end)
+-- ข้อความแจ้งเตือน
+local Note = Instance.new("TextLabel")
+Note.Size = UDim2.new(1, 0, 0, 25)
+Note.Position = UDim2.new(0, 0, 1, -28)
+Note.BackgroundTransparency = 1
+Note.Text = "⚠️  โครงสร้างเพื่อการเรียนรู้เท่านั้น — ไม่มีฟังก์ชันทำงานจริง"
+Note.TextColor3 = Color3.fromRGB(255, 130, 130)
+Note.TextSize = 11
+Note.Font = Enum.Font.Gotham
+Note.Parent = MainFrame
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then
-		return -- กำลังพิมพ์แชทหรืออินพุตถูกใช้ไปแล้ว
-	end
-	if input.KeyCode == Enum.KeyCode.M then
-		SetOpen(not State.Open)
-	end
-end)
-
--- =============================================
--- ▶️ เริ่มต้น
--- =============================================
-ShowCategory(Categories[1])
-AddLog("✅ พร้อมทำงาน — ระบบทั้งหมดทำงานจริง")
+print("✅ เมนูโครงสร้างโหลดแล้ว! กด M หรือปุ่ม '📖 เมนูฟีเจอร์' เพื่อเปิด")
+print("📂 มีทั้งหมด " .. #Categories .. " หมวดหมู่ — กดที่ไอคอนด้านบนเพื่อสลับ")
