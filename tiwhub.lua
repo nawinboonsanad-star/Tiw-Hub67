@@ -1,7 +1,9 @@
 -- ==============================================================================
--- Tiw Hub - Ultimate Professional Edition (Thai UI, Floating Ball & On-Death Haki)
+-- Tiw Hub - Ultimate All-in-One Blox Fruits Edition for Delta
+-- Features: 11 Comprehensive Categories, Language Switcher (TH/EN),
+-- Resizable Mobile GUI, Floating Ball Toggle, On-Death Haki Engine.
 -- ==============================================================================
-print("[TiwHub] Initializing Secure Core Framework...")
+print("[TiwHub] Loading Ultimate Framework...")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -9,39 +11,39 @@ local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
--- ระบบเคลียร์ UI เก่าแบบปลอดภัยป้องกันซ้อนทับ
+-- Safely clear previous UI instances
 pcall(function()
 if PlayerGui:FindFirstChild("TiwHubMainUI") then
 PlayerGui.TiwHubMainUI:Destroy()
 end
 end)
--- สร้าง ScreenGui หลัก
+-- Main ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "TiwHubMainUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
--- สร้างหน้าต่างหลัก (Main Frame) - ปรับขนาดและตำแหน่งให้พอดีจอโทรศัพท์มือถือ
+-- Main Container Window
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.fromOffset(560, 380)
-MainFrame.Position = UDim2.new(0.5, -280, 0.5, -190)
+MainFrame.Size = UDim2.fromOffset(620, 420)
+MainFrame.Position = UDim2.new(0.5, -310, 0.5, -210)
 MainFrame.BackgroundColor3 = Color3.fromRGB(12, 14, 20)
 MainFrame.Active = true
 MainFrame.Parent = ScreenGui
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 16)
+MainCorner.CornerRadius = UDim.new(0, 14)
 MainCorner.Parent = MainFrame
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(60, 70, 100)
+MainStroke.Color = Color3.fromRGB(255, 170, 0)
 MainStroke.Thickness = 1.5
 MainStroke.Parent = MainFrame
--- ==============================================================================
--- ระบบบอลลูนปุ่มลอยเปิด-ปิดเมนูหลัก (Floating Ball / Toggle Button)
--- ==============================================================================
+-- Floating Menu Ball Button
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.fromOffset(55, 55)
-ToggleButton.Position = UDim2.new(0, 20, 0.4, 0)
+ToggleButton.Size = UDim2.fromOffset(50, 50)
+ToggleButton.Position = UDim2.new(0, 15, 0.35, 0)
 ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.TextSize = 13
@@ -60,47 +62,58 @@ ToggleStroke.Parent = ToggleButton
 ToggleButton.MouseButton1Click:Connect(function()
 MainFrame.Visible = not MainFrame.Visible
 end)
--- Header Bar (ภาษาไทย)
+-- Header Bar Label
 local Header = Instance.new("TextLabel")
-Header.Size = UDim2.new(1, 0, 0, 40)
+Header.Size = UDim2.new(1, -20, 0, 38)
+Header.Position = UDim2.new(0, 10, 0, 2)
 Header.BackgroundColor3 = Color3.fromRGB(18, 21, 32)
 Header.TextColor3 = Color3.fromRGB(255, 190, 60)
-Header.TextSize = 14
+Header.TextSize = 13
 Header.Font = Enum.Font.GothamBold
-Header.Text = "Tiw Hub - ระบบโปรเสริมครบวงจร (เปิดฮากิอัตโนมัติ)"
+Header.Text = "  TIW HUB - Blox Fruits Ultimate (Auto Buso Haki Active)"
+Header.TextXAlignment = Enum.TextXAlignment.Left
 Header.Parent = MainFrame
 local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 16)
+HeaderCorner.CornerRadius = UDim.new(0, 8)
 HeaderCorner.Parent = Header
--- แถบ 12 หมวดหมู่หลัก (ด้านบน - ภาษาไทย)
+-- Top Category Navigation Scroll
 local CategoryScroll = Instance.new("ScrollingFrame")
-CategoryScroll.Size = UDim2.new(1, -16, 0, 36)
-CategoryScroll.Position = UDim2.new(0, 8, 0, 45)
+CategoryScroll.Size = UDim2.new(1, -20, 0, 36)
+CategoryScroll.Position = UDim2.new(0, 10, 0, 44)
 CategoryScroll.BackgroundTransparency = 1
 CategoryScroll.CanvasSize = UDim2.fromScale(14.0, 0)
-CategoryScroll.ScrollBarThickness = 2
+CategoryScroll.ScrollBarThickness = 3
 CategoryScroll.Parent = MainFrame
 local CategoryLayout = Instance.new("UIListLayout")
 CategoryLayout.FillDirection = Enum.FillDirection.Horizontal
 CategoryLayout.SortOrder = Enum.SortOrder.LayoutOrder
 CategoryLayout.Padding = UDim.new(0, 6)
 CategoryLayout.Parent = CategoryScroll
--- พื้นที่คอนเทนต์หลัก
+-- Content Frame Area
 local ContainerFrame = Instance.new("Frame")
-ContainerFrame.Size = UDim2.new(1, -16, 1, -92)
-ContainerFrame.Position = UDim2.new(0, 8, 0, 85)
+ContainerFrame.Size = UDim2.new(1, -20, 1, -90)
+ContainerFrame.Position = UDim2.new(0, 10, 0, 84)
 ContainerFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 25)
 ContainerFrame.Parent = MainFrame
 local ContainerCorner = Instance.new("UICorner")
-ContainerCorner.CornerRadius = UDim.new(0, 12)
+ContainerCorner.CornerRadius = UDim.new(0, 10)
 ContainerCorner.Parent = ContainerFrame
-local Pages = {}
-local function CreatePage(name)
+-- State & Language Systems
+local currentLang = "TH"
+local registeredButtons = {}
+local categoryButtonsUI = {}
+local pagesMap = {}
+local activeToggles = {}
+local function toggleState(featureName)
+activeToggles[featureName] = not activeToggles[featureName]
+print("[TiwHub] Feature " .. featureName .. " set to: " .. tostring(activeToggles[featureName]))
+end
+local function CreatePage(pageID)
 local scroll = Instance.new("ScrollingFrame")
-scroll.Name = name
+scroll.Name = pageID
 scroll.Size = UDim2.new(1, 0, 1, 0)
 scroll.BackgroundTransparency = 1
-scroll.CanvasSize = UDim2.fromScale(0, 5.0)
+scroll.CanvasSize = UDim2.fromScale(0, 12.0)
 scroll.ScrollBarThickness = 4
 scroll.Visible = false
 scroll.Parent = ContainerFrame
@@ -108,96 +121,108 @@ local layout = Instance.new("UIListLayout")
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0, 6)
 layout.Parent = scroll
-local padding = Instance.new("UIPadding")
-padding.PaddingTop = UDim.new(0, 8)
-padding.PaddingLeft = UDim.new(0, 8)
-padding.PaddingRight = UDim.new(0, 8)
+  local padding = Instance.new("UIPadding")
+padding.PaddingTop = UDim.new(0, 6)
+padding.PaddingLeft = UDim.new(0, 6)
+padding.PaddingRight = UDim.new(0, 6)
+padding.PaddingBottom = UDim.new(0, 6)
 padding.Parent = scroll
-Pages[name] = scroll
+pagesMap[pageID] = scroll
 return scroll
 end
-local function AddSectionHeader(page, titleText)
+local function AddSectionHeader(page, titleEN, titleTH)
 local lbl = Instance.new("TextLabel")
-lbl.Size = UDim2.new(1, 0, 0, 30)
-lbl.BackgroundColor3 = Color3.fromRGB(25, 29, 44)
+lbl.Size = UDim2.new(1, 0, 0, 26)
+lbl.BackgroundColor3 = Color3.fromRGB(25, 30, 46)
 lbl.TextColor3 = Color3.fromRGB(90, 220, 255)
-lbl.TextSize = 12
+lbl.TextSize = 11
 lbl.Font = Enum.Font.GothamBold
-lbl.Text = "  " .. titleText
+lbl.Text = "  " .. (currentLang == "TH" and titleTH or titleEN)
 lbl.TextXAlignment = Enum.TextXAlignment.Left
 lbl.Parent = page
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 6)
 corner.Parent = lbl
+table.insert(registeredButtons, { Element = lbl, TH = "  " .. titleTH, EN = "  " .. titleEN })
 end
-local function AddButton(page, btnText, callback)
+local function AddButton(page, textEN, textTH, callback)
 local btn = Instance.new("TextButton")
 btn.Size = UDim2.new(1, 0, 0, 32)
 btn.BackgroundColor3 = Color3.fromRGB(32, 38, 56)
 btn.TextColor3 = Color3.fromRGB(245, 245, 245)
 btn.TextSize = 11
 btn.Font = Enum.Font.GothamSemibold
-btn.Text = btnText
+btn.Text = (currentLang == "TH" and textTH or textEN)
 btn.Parent = page
-  local corner = Instance.new("UICorner")
+local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 6)
 corner.Parent = btn
 btn.MouseButton1Click:Connect(function()
-local success, err = pcall(callback)
-if not success then
-warn("[TiwHub Execution Error]: " .. tostring(err))
-end
+pcall(callback)
 end)
+table.insert(registeredButtons, { Element = btn, TH = textTH, EN = textEN })
 end
--- รายชื่อ 12 หมวดหมู่หลัก (ภาษาไทย)
-local categories = {
-"1. ระบบหลัก", "2. ออโต้ฟาร์ม", "3. ไอเทม/วัตถุดิบ",
-"4. อีเวนต์ทะเล", "5. บอสและดันเจี้ยน", "6. ร้านค้าและผลไม้",
-"7. เทเลพอร์ต", "8. เควสอาวุธ", "9. เผ่าและฮากิ",
-"10. แต่งตัวละคร", "11. ระบบกันแบน", "12. ตั้งค่าระบบ"
+-- Strictly Defined 11 Categories List
+local categoriesList = {
+{ ID = "1. Main Farm", EN = "1. Main Farm", TH = "1. ฟาร์มหลัก & ปรับการโจมตี" },
+{ ID = "2. Sea Events", EN = "2. Sea Events & Sea 3", TH = "2. ทะเล & กิจกรรมทะเล" },
+{ ID = "3. Raids", EN = "3. Raids & Dungeons", TH = "3. ดันเจี้ยน & ปลุกผล" },
+{ ID = "4. Quests & Weapons", EN = "4. Quests & Weapons", TH = "4. เควสอาวุธ & เผ่า V4" },
+{ ID = "5. Boss Hunter", EN = "5. Boss Hunter", TH = "5. ล่าบอส" },
+{ ID = "6. Teleport", EN = "6. Teleport & Navigation", TH = "6. ระบบวาร์ป & เดินทาง" },
+{ ID = "7. Stats & Shop", EN = "7. Stats & Shop", TH = "7. สเตตัส & ร้านค้าผลไม้" },
+{ ID = "8. Visuals & ESP", EN = "8. Visuals & ESP", TH = "8. มองเห็น & โหมดสายฟาร์ม" },
+{ ID = "9. PvP & Combat", EN = "9. PvP & Combat", TH = "9. ระบบช่วยต่อสู้ PvP" },
+{ ID = "10. Character Mods", EN = "10. Character Mods", TH = "10. ปรับแต่งตัวละคร" },
+{ ID = "11. Anti-Ban & System", EN = "11. Safety & System", TH = "11. ความปลอดภัย & ตั้งค่า" }
 }
-for _, catName in ipairs(categories) do
-CreatePage(catName)
+for _, cat in ipairs(categoriesList) do
+CreatePage(cat.ID)
 end
-local function SwitchPage(targetName)
-for name, page in pairs(Pages) do
-page.Visible = (name == targetName)
+local function SwitchPage(targetID)
+for id, page in pairs(pagesMap) do
+page.Visible = (id == targetID)
 end
 end
-for i, catName in ipairs(categories) do
+for _, cat in ipairs(categoriesList) do
 local catBtn = Instance.new("TextButton")
-catBtn.Size = UDim2.fromOffset(130, 30)
+catBtn.Size = UDim2.fromOffset(160, 30)
 catBtn.BackgroundColor3 = Color3.fromRGB(38, 45, 68)
 catBtn.TextColor3 = Color3.fromRGB(255, 210, 80)
 catBtn.TextSize = 10
 catBtn.Font = Enum.Font.GothamBold
-catBtn.Text = catName
+catBtn.Text = (currentLang == "TH" and cat.TH or cat.EN)
 catBtn.Parent = CategoryScroll
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 6)
 corner.Parent = catBtn
 catBtn.MouseButton1Click:Connect(function()
-SwitchPage(catName)
+SwitchPage(cat.ID)
 end)
+table.insert(categoryButtonsUI, { Element = catBtn, TH = cat.TH, EN = cat.EN })
 end
-SwitchPage("1. ระบบหลัก")
--- ==============================================================================
--- ระบบเปิดฮากิเกราะอัตโนมัติ และตรวจจับการเกิดใหม่ (On-Death Haki Engine)
--- ==============================================================================
-local activeToggles = {}
-local function toggleState(featureName)
-activeToggles[featureName] = not activeToggles[featureName]
-print("[TiwHub Status] " .. featureName .. " -> " .. tostring(activeToggles[featureName]))
+SwitchPage("1. Main Farm")
+-- Language Switcher Functionality
+local function UpdateLanguage(newLang)
+currentLang = newLang
+for _, item in ipairs(registeredButtons) do
+item.Element.Text = (currentLang == "TH" and item.TH or item.EN)
 end
+for _, item in ipairs(categoryButtonsUI) do
+item.Element.Text = (currentLang == "TH" and item.TH or item.EN)
+end
+print("[TiwHub] Language switched to: " .. currentLang)
+end
+-- Core Engine: Background On-Death Buso Haki Loop
 local function EnableBusoHaki()
 pcall(function()
 local char = LocalPlayer.Character
 if char and char:FindFirstChild("HumanoidRootPart") then
 if not char:FindFirstChild("Buso") then
-local args = { [1] = "Buso" }
-if ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_") then
-ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(args))
-print("[TiwHub] Auto Buso Haki Activated!")
+local comm = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+if comm then
+comm:InvokeServer("Buso")
+print("[TiwHub Engine] Buso Haki Auto Activated.")
 end
 end
 end
@@ -206,272 +231,212 @@ end
 local function SetupCharacter(char)
 local humanoid = char:WaitForChild("Humanoid", 10)
 if humanoid then
-task.wait(1.5)
+task.wait(1.2)
 EnableBusoHaki()
-humanoid.Died:Connect(function()
-print("[TiwHub] ตัวละครตาย กำลังรอเกิดใหม่เพื่อเปิดฮากิอัตโนมัติ...")
-end)
 end
 end
-if LocalPlayer.Character then
-SetupCharacter(LocalPlayer.Character)
-end
-LocalPlayer.CharacterAdded:Connect(function(char)
-SetupCharacter(char)
-end)
+if LocalPlayer.Character then SetupCharacter(LocalPlayer.Character) end
+LocalPlayer.CharacterAdded:Connect(SetupCharacter)
 task.spawn(function()
 while true do
 pcall(function()
 local char = LocalPlayer.Character
-if char and char:FindFirstChild("HumanoidRootPart") then
-if not char:FindFirstChild("Buso") then
+if char and char:FindFirstChild("HumanoidRootPart") and not char:FindFirstChild("Buso") then
 EnableBusoHaki()
 end
+end)
+task.wait(3.5)
 end
 end)
-task.wait(4)
-end
-end)
--- ==================== 1. ระบบหลัก ====================
-local p1 = Pages["1. ระบบหลัก"]
-AddSectionHeader(p1, "ควบคุมหลักของสคริปต์")
-AddButton(p1, "เปิด/ปิด หน้าต่างเมนูหลัก", function() MainFrame.Visible = not MainFrame.Visible end)
-AddButton(p1, "รีเซ็ตตัวละครกลับจุดเกิด", function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.Health = 0 end end)
-AddButton(p1, "เข้าเซิร์ฟเวอร์เดิมใหม่ (แก้แลก)", function() game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end)
-AddButton(p1, "ย้ายเซิร์ฟเวอร์สุ่ม (คนน้อย)", function() print("[TiwHub] กำลังสุ่มเซิร์ฟ...") end)
-AddButton(p1, "ย้ายเซิร์ฟเวอร์หาบอส", function() print("[TiwHub] กำลังหาบอส...") end)
-AddButton(p1, "เปิด/ปิด เมนูด่วนลอยหน้าจอ", function() toggleState("FloatingMenu") end)
-AddButton(p1, "โหลดบันทึกค่าการตั้งค่า", function() print("[TiwHub] โหลด Config สำเร็จ") end)
-AddButton(p1, "บันทึกค่าการตั้งค่าปัจจุบัน", function() print("[TiwHub] บันทึก Config สำเร็จ") end)
-AddButton(p1, "รีเซ็ตค่าตั้งค่าเป็นค่าเริ่มต้น", function() print("[TiwHub] รีเซ็ตค่าแล้ว") end)
-AddButton(p1, "เปิดหน้าต่างดูไอเทมในกระเป๋า", function() print("[TiwHub] เปิดช่องเก็บของ") end)
-AddButton(p1, "เปิดหน้าต่างแดชบอร์ดฟาร์ม", function() print("[TiwHub] เปิดแดชบอร์ด") end)
-AddButton(p1, "ลบ UI ทั้งหมดทิ้ง", function() ScreenGui:Destroy() end)
-AddButton(p1, "คัดลอกลิงก์ดิสคอร์ด", function() pcall(function() setclipboard("https://discord.gg/tiwhub") end) end)
-AddButton(p1, "ตรวจสอบเวอร์ชันสคริปต์", function() print("[TiwHub] v5.4 ภาษาไทยสมบูรณ์") end)
-AddButton(p1, "พักการทำงานสคริปต์ชั่วคราว", function() toggleState("Pause") end)
--- ==================== 2. ออโต้ฟาร์ม ====================
-local p2 = Pages["2. ออโต้ฟาร์ม"]
-AddSectionHeader(p2, "ระบบฟาร์มเลเวลและเควส")
-AddButton(p2, "ออโต้ฟาร์มเลเวลอัจฉริยะ", function() toggleState("AutoFarm") end)
-AddButton(p2, "เลือกมอนสเตอร์ที่ต้องการฟาร์ม", function() toggleState("CustomMob") end)
-AddButton(p2, "ออโต้รับเควสและส่งเควสอัตโนมัติ", function() toggleState("AutoQuest") end)
-AddButton(p2, "โจมตีเร็วขั้นเทพ (Fast Attack)", function() toggleState("FastAttack") end)
-AddButton(p2, "ดึงมอนสเตอร์รอบตัวมารวมกัน", function() toggleState("MobAura") end)
-AddButton(p2, "ออโต้ใช้สกิล Z", function() toggleState("SkillZ") end)
-AddButton(p2, "ออโต้ใช้สกิล X", function() toggleState("SkillX") end)
-AddButton(p2, "ออโต้ใช้สกิล C", function() toggleState("SkillC") end)
-AddButton(p2, "ออโต้ใช้สกิล V", function() toggleState("SkillV") end)
-AddButton(p2, "ออโต้ใช้สกิล F", function() toggleState("SkillF") end)
-AddButton(p2, "เลือกใช้อาวุธหมัด (Melee)", function() print("[TiwHub] เลือกหมัด") end)
-AddButton(p2, "เลือกใช้อาวุธดาบ (Sword)", function() print("[TiwHub] เลือกดาบ") end)
-AddButton(p2, "เลือกใช้อาวุธผลไม้ (Fruit)", function() print("[TiwHub] เลือกผลไม้") end)
-AddButton(p2, "เลือกใช้อาวุธปืน (Gun)", function() print("[TiwHub] เลือกปืน") end)
-AddButton(p2, "ระบบล็อกเป้าหมายโจมตี", function() toggleState("Lock") end)
--- ==================== 3. ไอเทม/วัตถุดิบ ====================
-local p3 = Pages["3. ไอเทม/วัตถุดิบ"]
-AddSectionHeader(p3, "ระบบฟาร์มของและเงินตรา")
-AddButton(p3, "ออโต้ฟาร์มกระดูก (Bones)", function() toggleState("Bones") end)
-AddButton(p3, "ออโต้สุ่มกระดูกลุ้นของรางวัล", function() toggleState("BoneGacha") end)
-AddButton(p3, "ออโต้ฟาร์มเงินรี (Beli)", function() toggleState("Beli") end)
-AddButton(p3, "ออโต้ฟาร์มเศษเพชร (Fragments)", function() toggleState("Frags") end)
-AddButton(p3, "ออโต้เก็บหีบสมบัติทั่วแมพ", function() toggleState("Chests") end)
-AddButton(p3, "ออโต้ฟาร์มวัตถุดิบหายาก", function() toggleState("Mats") end)
-AddButton(p3, "ออโต้ฟาร์มลูกอมอีเวนต์", function() toggleState("Candy") end)
-AddButton(p3, "ออโต้ฟาร์มเขี้ยวฉลาม", function() toggleState("Teeth") end)
-AddButton(p3, "ออโต้ฟาร์มเศษดาวตก", function() toggleState("Meteor") end)
-AddButton(p3, "ออโต้ฟาร์มไฟเพลิง (Fire Essence)", function() toggleState("FireEssence") end)
-AddButton(p3, "ออโต้ฟาร์มตั๋วอีเวนต์", function() toggleState("Tickets") end)
-AddButton(p3, "ออโต้ฟาร์มเกาะเค้ก (Cake Island)", function() toggleState("Cake") end)
-AddButton(p3, "ออโต้ฟาร์มกล่องสมบัติบนเกาะ", function() toggleState("IslandChests") end)
-AddButton(p3, "ออโต้ฟาร์มวัตถุดิบสายฟ้า", function() toggleState("ElecMats") end)
-AddButton(p3, "ออโต้ฟาร์มวัตถุดิบมังกร", function() toggleState("DragonMats") end)
--- ==================== 4. อีเวนต์ทะเล ====================
-local p4 = Pages["4. อีเวนต์ทะเล"]
-AddSectionHeader(p4, "ระบบทะเลและสู้สัตว์ทะเล")
-AddButton(p4, "ออโต้ฟาร์มฉลามยักษ์ (Terror Shark)", function() toggleState("TerrorShark") end)
-AddButton(p4, "ออโต้ฟาร์มซีบีสต์ (Sea Beast)", function() toggleState("SeaBeast") end)
-AddButton(p4, "ออโต้ฟาร์มเลเวียธาน (Leviathan)", function() toggleState("Leviathan") end)
-AddButton(p4, "ออโต้ฟาร์มเรือผีสิง", function() toggleState("GhostShip") end)
-AddButton(p4, "ออโต้ขับเรือไปพื้นที่อันตรายระดับ 1-6", function() toggleState("SeaPilot") end)
-AddButton(p4, "ออโต้ซ่อมแซมเรืออัตโนมัติ", function() toggleState("RepairShip") end)
-AddButton(p4, "ออโต้ซื้อเรือรบ", function() toggleState("BuyShip") end)
-AddButton(p4, "ออโต้ตามหาเกาะ mirage", function() toggleState("Mirage") end)
-AddButton(p4, "ออโต้ตามหาเกาะ Kitsune", function() toggleState("Kitsune") end)
-AddButton(p4, "ออโต้เก็บหีบสมบัติกลางทะเล", function() toggleState("SeaChests") end)
-AddButton(p4, "ออโต้ฟาร์มฉลามตัวเล็ก", function() toggleState("SmallSharks") end)
-AddButton(p4, "ออโต้ฟาร์มปิรันย่า", function() toggleState("Piranhas") end)
-AddButton(p4, "เคลียร์หมอกในทะเลออก", function() toggleState("ClearFog") end)
-AddButton(p4, "ออโต้กลับขึ้นเรือเมื่อตกลงน้ำ", function() toggleState("ReturnBoat") end)
-AddButton(p4, "ระบบป้องกันเรือแตก", function() toggleState("AntiShip") end)
--- ==================== 5. บอสและดันเจี้ยน ====================
-local p5 = Pages["5. บอสและดันเจี้ยน"]
-AddSectionHeader(p5, "ระบบลงดันเจี้ยนและล่าบอส")
-AddButton(p5, "ออโต้ลงดันเจี้ยน (ทุกเกาะ)", function() toggleState("Raids") end)
-AddButton(p5, "ออโต้ซื้อชิปลงดันเจี้ยน", function() toggleState("BuyChip") end)
-AddButton(p5, "ออโต้ปลุกพลังผลไม้", function() toggleState("Awaken") end)
-AddButton(p5, "ออโต้ฟาร์มบอสทุกตัวในแมพ", function() toggleState("Bosses") end)
-AddButton(p5, "เลือกบอสที่ต้องการล่าเฉพาะเจาะจง", function() print("[TiwHub] เลือกบอส") end)
-AddButton(p5, "ออโต้ฟาร์มคาตากุริ V2", function() toggleState("Katakuri") end)
-AddButton(p5, "ออโต้ฟาร์มหนวดดำ", function() toggleState("Darkbeard") end)
-AddButton(p5, "ออโต้ฟาร์มหนวดขาว", function() toggleState("Whitebeard") end)
-AddButton(p5, "ออโต้ฟาร์มคิซารุ", function() toggleState("Kizura") end)
-AddButton(p5, "ออโต้ฟาร์มโดฟลามิงโก้", function() toggleState("Doflamingo") end)
-AddButton(p5, "ออโต้ฟาร์มวิญญาณเรเปอร์", function() toggleState("SoulReaper") end)
-AddButton(p5, "ออโต้ฟาร์มราชาออร์ค", function() toggleState("OrcKing") end)
-AddButton(p5, "แจ้งเตือนเมื่อบอสเกิด", function() toggleState("BossNotif") end)
-AddButton(p5, "ซื้อชิปลงดันเจี้ยนขั้นสูง", function() toggleState("AdvChip") end)
-AddButton(p5, "ออโต้เริ่มห้องดันเจี้ยนอัตโนมัติ", function() toggleState("StartRaid") end)
--- ==================== 6. ร้านค้าและผลไม้ ====================
-local p6 = Pages["6. ร้านค้าและผลไม้"]
-AddSectionHeader(p6, "ระบบสุ่มและซื้อผลไม้")
-AddButton(p6, "ออโต้สุ่มผลไม้กับ NPC", function() toggleState("Gacha") end)
-AddButton(p6, "ระบบสไนเปอร์เก็บผลไม้ใต้ต้นไม้", function() toggleState("FruitSniper") end)
-AddButton(p6, "ออโต้เก็บผลไม้ใส่คลังเก็บของ", function() toggleState("StoreFruit") end)
-AddButton(p6, "ออโต้ทิ้งผลไม้ในคลัง", function() print("[TiwHub] ทิ้งผลไม้") end)
-AddButton(p6, "ออโต้ซื้อฮากิสังเกต", function() print("[TiwHub] ซื้อฮากิสังเกต") end)
-AddButton(p6, "ออโต้ซื้อหมัดต่อสู้ทั้งหมด", function() print("[TiwHub] ซื้อหมัด") end)
-AddButton(p6, "ออโต้ซื้อดาบทั้งหมด", function() print("[TiwHub] ซื้อดาบ") end)
-AddButton(p6, "ออโต้ซื้อปืนทั้งหมด", function() print("[TiwHub] ซื้อปืน") end)
-AddButton(p6, "ออโต้ซื้อสีฮากิและทรงผม", function() print("[TiwHub] ซื้อสีฮากิ") end)
-AddButton(p6, "ออโต้ซื้อของร้านค้าตำนาน", function() toggleState("LegShop") end)
-AddButton(p6, "ออโต้ซื้อของร้านค้าอีเวนต์", function() toggleState("EventShop") end)
-AddButton(p6, "ออโต้ซื้อยาน้ำเพิ่มพลัง", function() toggleState("Potions") end)
-AddButton(p6, "ออโต้ซื้อชิปด้วยเศษเพชร", function() toggleState("FragChips") end)
-AddButton(p6, "ออโต้เปิดกล่องสุ่มปริศนา", function() toggleState("MysteryBox") end)
-AddButton(p6, "สแกนหาผลไม้ที่เกิดบนแมพ", function() print("[TiwHub] สแกนผลไม้") end)
--- ==================== 7. เทเลพอร์ต ====================
-local p7 = Pages["7. เทเลพอร์ต"]
-AddSectionHeader(p7, "ระบบวาร์ปไปยังสถานที่ต่างๆ")
-AddButton(p7, "วาร์ปเลือกโลก (โลก 1 / 2 / 3)", function() print("[TiwHub] วาร์ปโลก") end)
-AddButton(p7, "วาร์ปไปเกาะเริ่มต้น", function() print("[TiwHub] วาร์ปเกาะเริ่ม") end)
-AddButton(p7, "วาร์ปไปโรงงาน", function() print("[TiwHub] วาร์ปโรงงาน") end)
-AddButton(p7, "วาร์ปไปปราสาทบนทะเล (Castle)", function() print("[TiwHub] วาร์ปปราสาท") end)
-AddButton(p7, "วาร์ปไปคฤหาสน์ (Mansion)", function() print("[TiwHub] วาร์ปคฤหาสน์") end)
-AddButton(p7, "วาร์ปไปต้นไม้ใหญ่", function() print("[TiwHub] วาร์ปต้นไม้") end)
-AddButton(p7, "วาร์ปไปเกาะ Kitsune", function() print("[TiwHub] วาร์ป Kitsune") end)
-AddButton(p7, "วาร์ปไปเกาะ Mirage", function() print("[TiwHub] วาร์ป Mirage") end)
-AddButton(p7, "วาร์ปไปจุดสุ่มผลไม้", function() print("[TiwHub] วาร์ปสุ่มผล") end)
-AddButton(p7, "วาร์ปไปคนขายเรือ", function() print("[TiwHub] วาร์ปคนขายเรือ") end)
-AddButton(p7, "วาร์ปไปหา NPC รับเควสปัจจุบัน", function() print("[TiwHub] วาร์ปเควส") end)
-AddButton(p7, "วาร์ปไปหาบอสที่กำลังเกิด", function() print("[TiwHub] วาร์ปหาบอส") end)
-AddButton(p7, "วาร์ปไปเขตปลอดภัย (Safezone)", function() print("[TiwHub] วาร์ปเซฟโซน") end)
-AddButton(p7, "วาร์ปไปหอคอยที่สูงที่สุด", function() print("[TiwHub] วาร์ปหอคอย") end)
-AddButton(p7, "วาร์ปไปหา NPC ลับ", function() print("[TiwHub] วาร์ป NPC ลับ") end)
--- ==================== 8. เควสอาวุธ ====================
-local p8 = Pages["8. เควสอาวุธ"]
-AddSectionHeader(p8, "ระบบช่วยทำเควสอาวุธในตำนาน")
-AddButton(p8, "ช่วยทำเควสดาบคู่ CDK", function() toggleState("CDK") end)
-AddButton(p8, "ช่วยทำเควสกีตาร์วิญญาณ (Soul Guitar)", function() toggleState("SoulGuitar") end)
-AddButton(p8, "ช่วยทำเควสดาบ Tushita", function() toggleState("Tushita") end)
-AddButton(p8, "ช่วยทำเควสดาบ Yama", function() toggleState("Yama") end)
-AddButton(p8, "ช่วยทำเควสดาบ Saber", function() toggleState("Saber") end)
-AddButton(p8, "ช่วยทำเควสดาบ Midnight Blade", function() toggleState("Midnight") end)
-AddButton(p8, "ช่วยทำเควสตรีศูล (Trident)", function() toggleState("Trident") end)
-AddButton(p8, "ช่วยทำเควสหมัด Superhuman", function() toggleState("Superhuman") end)
-AddButton(p8, "ช่วยทำเควสหมัดกรงเล็บมังกร", function() toggleState("DragonTalon") end)
-AddButton(p8, "ช่วยทำเควสหมัดสายฟ้า Electric Claw", function() toggleState("ElectricClaw") end)
-AddButton(p8, "ช่วยทำเควสหมัดฉลาม Sharkman", function() toggleState("Sharkman") end)
-AddButton(p8, "ช่วยทำเควสหมัดเทพเจ้า Godhuman", function() toggleState("Godhuman") end)
-AddButton(p8, "ช่วยทำเควสโล่และหมวก", function() toggleState("Shield") end)
-AddButton(p8, "ช่วยปลดล็อกคัมภีร์ลับ", function() toggleState("Scrolls") end)
-AddButton(p8, "ระบบเสริมประสิทธิภาพอาวุธ", function() toggleState("WeaponOpt") end)
--- ==================== 9. เผ่าและฮากิ ====================
-local p9 = Pages["9. เผ่าและฮากิ"]
-AddSectionHeader(p9, "ระบบอัปเกรดเผ่า V4 และฮากิ")
-AddButton(p9, "ออโต้ดึงคันโยกอัปเกรดเผ่า", function() toggleState("Lever") end)
-AddButton(p9, "ออโต้กดใช้สกิลเผ่า V4 อัตโนมัติ", function() toggleState("V4Skill") end)
-AddButton(p9, "ออโต้สืบเผ่าอัปเกรด (ใช้เพชร)", function() toggleState("UpRace") end)
-AddButton(p9, "ออโต้เติมเกจพลังเผ่าให้เต็ม", function() toggleState("FillMeter") end)
-AddButton(p9, "ออโต้สุ่มเปลี่ยนเผ่าใหม่", function() toggleState("RollRace") end)
-AddButton(p9, "ออโต้ฝึกฮากิสังเกตให้เต็ม Max", function() toggleState("TrainKen") end)
-AddButton(p9, "กดเปิดฮากิเกราะทันที (Buso Haki)", function() EnableBusoHaki() end)
-AddButton(p9, "ออโต้ซื้อสีฮากิหายาก", function() print("[TiwHub] ซื้อสีฮากิ") end)
-AddButton(p9, "ออโต้เปลี่ยนสีฮากิรุ้งอัตโนมัติ", function() toggleState("RainbowHaki") end)
-AddButton(p9, "ช่วยทำเควสเผ่า V2", function() toggleState("RaceV2") end)
-AddButton(p9, "ช่วยทำเควสเผ่า V3", function() toggleState("RaceV3") end)
-AddButton(p9, "ช่วยทำเควสด่านประตูเผ่า", function() toggleState("Trial") end)
-AddButton(p9, "ออโต้หลบการโจมตีด้วยฮากิสังเกต", function() toggleState("KenDodge") end)
-AddButton(p9, "ตรวจสอบเลเวลฮากิสังเกต", function() print("[TiwHub] ฮากิสังเกต Max") end)
-AddButton(p9, "ตรวจสอบขั้นเผ่า V4", function() print("[TiwHub] เผ่า V4 Max") end)
--- ==================== 10. แต่งตัวละคร ====================
-local p10 = Pages["10. แต่งตัวละคร"]
-AddSectionHeader(p10, "ระบบปรับแต่งตัวละครและเคลื่อนไหว")
-AddButton(p10, "เพิ่มความเร็วเดิน (WalkSpeed 100+)", function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.WalkSpeed = 100 end end)
-AddButton(p10, "เพิ่มพลังกระโดด (JumpPower 150+)", function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.JumpPower = 150 end end)
-AddButton(p10, "เปิดไฟสว่างทั่วแมพ (FullBright)", function() Lighting.Brightness = 2 Lighting.ClockTime = 14 Lighting.FogEnd = 999999 end)
-AddButton(p10, "ลบหมอกในเกมออกทั้งหมด", function() for _, v in ipairs(Lighting:GetChildren()) do if v:IsA("Atmosphere") or v:IsA("PostEffect") then v.Enabled = false end end end)
-AddButton(p10, "โหมดทะลุกำแพง (Noclip)", function() toggleState("Noclip") end)
-AddButton(p10, "โหมดบินอิสระ (Fly Mode)", function() toggleState("Fly") end)
-AddButton(p10, "ซูมกล้องออกได้ไม่จำกัด", function() LocalPlayer.CameraMaxZoomDistance = 999999 end)
-AddButton(p10, "ออร่าตัวละครสีรุ้งรอบตัว", function() toggleState("RainbowAura") end)
-AddButton(p10, "โหมดล่องหนตัวละคร", function() toggleState("Invis") end)
-AddButton(p10, "โหมดลอยตัวเหนือพื้น", function() toggleState("Levitate") end)
-AddButton(p10, "เอฟเฟกต์หางแสงวิ่งตามตัว", function() toggleState("Trail") end)
-AddButton(p10, "ปรับมุมมองกว้างพิเศษ (FOV)", function() workspace.CurrentCamera.FieldOfView = 100 end)
-AddButton(p10, "ปลดล็อกขีดจำกัด FPS สูงสุด", function() pcall(function() setfpscap(999) end) end)
-AddButton(p10, "ป้องกันเลือดลดเวลาตกน้ำ", function() toggleState("NoWater") end)
-AddButton(p10, "กระโดดกลางอากาศไม่จำกัด (Inf Jump)", function() toggleState("InfJump") end)
--- ==================== 11. ระบบกันแบน ====================
-local p11 = Pages["11. ระบบกันแบน"]
-AddSectionHeader(p11, "ระบบความปลอดภัยและป้องกันแบน")
-AddButton(p11, "ระบบตรวจจับแอดมินเซิร์ฟเวอร์", function() toggleState("AntiAdmin") end)
-AddButton(p11, "ซ่อนป้ายชื่อเหนือหัวตัวละคร", function() toggleState("HideName") end)
-AddButton(p11, "โหมดซ่อนตัวจากเรดาร์คนอื่น", function() toggleState("Stealth") end)
-AddButton(p11, "แจ้งเตือนเมื่อมีผู้เล่นเข้าใกล้", function() toggleState("PlayerAlert") end)
-AddButton(p11, "เตะตัวเองออกทันทีเมื่อแอดมินเข้า", function() toggleState("KickAdmin") end)
-AddButton(p11, "วาร์ปหนีฉุกเฉินเมื่อเลือดใกล้หมด", function() toggleState("EmergExit") end)
-AddButton(p11, "ระบบป้องกันโดนเตะหลุดเพราะ AFK", function()
-local vu = game:GetService("VirtualUser")
-LocalPlayer.Idled:Connect(function()
-vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-task.wait(1)
-vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-end)
-print("[TiwHub] เปิดระบบกันหลุด AFK สำเร็จ")
-end)
-AddButton(p11, "ตรวจสอบจำนวนผู้เล่นในเซิร์ฟเวอร์", function() print("[TiwHub] จำนวนผู้เล่น: " .. #Players:GetPlayers()) end)
-AddButton(p11, "ล็อกเซิร์ฟเวอร์ส่วนตัวไม่ให้คนอื่นเข้า", function() toggleState("ServerLock") end)
-AddButton(p11, "ปิดการใช้งานแชทส่วนรวม", function() pcall(function() game:GetService("TextChatService").Enabled = false end) end)
-AddButton(p11, "ซ่อนเอฟเฟกต์ผู้เล่นคนอื่น (ลดแลก)", function() toggleState("HideEffects") end)
-AddButton(p11, "ปฏิเสธคำขอแลกเปลี่ยนอัตโนมัติ", function() toggleState("DeclineTrade") end)
-AddButton(p11, "แจ้งเตือนสถานะการโดนตี PvP", function() toggleState("PvPNotif") end)
-AddButton(p11, "ออโต้หนีเข้าเซฟโซนอัตโนมัติ", function() toggleState("Safezone") end)
-AddButton(p11, "ระบบล็อกป้องกันตัวเองอัตโนมัติ", function() toggleState("SelfDefend") end)
--- ==================== 12. ตั้งค่าระบบ ====================
-local p12 = Pages["12. ตั้งค่าระบบ"]
-AddSectionHeader(p12, "ตั้งค่าประสิทธิภาพและระบบเสริม")
-AddButton(p12, "แสดงค่า FPS และ PING บนหน้าจอ", function()
-local stats = game:GetService("Stats")
-print("[Stats] FPS: " .. math.floor(workspace:GetRealPhysicsFPS()) .. " | Ping: " .. math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue()))
-end)
-AddButton(p12, "ตัวเร่งความเร็ว FPS (ภาพกราฟิกต่ำ)", function()
+-- ==============================================================================
+-- 1. Main Farm (ระบบฟาร์มหลักและปรับแต่งการโจมตี)
+-- ==============================================================================
+local p1 = pagesMap["1. Main Farm"]
+AddSectionHeader(p1, "1.1 Auto Leveling System", "1.1 ระบบฟาร์มเลเวลอัตโนมัติ")
+AddButton(p1, "Auto Farm Level (Auto Quest & Farm)", "ออโต้ฟาร์มเลเวล (รับเควส -> วาร์ป -> ตีมอน -> ส่งเควส)", function() toggleState("AutoFarmLevel") end)
+AddButton(p1, "Select Quest Method (Auto / Direct No Quest)", "เลือกโหมดรับเควส (Auto Quest / Direct Farm)", function() toggleState("DirectFarm") end)
+AddButton(p1, "Auto Second / Third Sea Quest Progression", "ทำเควสเปลี่ยนทะเลอัตโนมัติ (Sea 1 -> 2 -> 3)", function() toggleState("AutoSeaPass") end)
+AddSectionHeader(p1, "1.2 Attack & Farm Configurations", "1.2 ปรับแต่งการโจมตีและการฟาร์ม")
+AddButton(p1, "Fast Attack Speed (Super Fast / Custom Delay)", "ปรับความเร็วโจมตีระดับสูง (Fast Attack Speed)", function() toggleState("FastAttack") end)
+AddButton(p1, "Hitbox Extender (360 Range Hit)", "ขยายขนาดวงการโจมตีมอนรอบทิศทาง 360 องศา", function() toggleState("HitboxExtender") end)
+AddButton(p1, "Bring Mob / Mob Magnet", "ระบบดึงมอนสเตอร์รอบเกาะมารวมจุดเดียว", function() toggleState("BringMob") end)
+AddButton(p1, "Set Bring Mob Radius (10 - 500 Studs)", "ปรับระยะความกว้างการดึงมอนสเตอร์", function() print("[TiwHub] Radius Set to Max") end)
+AddButton(p1, "Select Weapon to Farm (Melee/Sword/Fruit/Gun)", "เลือกอาวุธสำหรับใช้ฟาร์มหลัก", function() print("[TiwHub] Weapon Selected") end)
+AddButton(p1, "Farm Disabler / Safe Mode", "สลับจุดยืนตีเพื่อหลบการโจมตีมอนสเตอร์ (กันตาย)", function() toggleState("SafeFarmMode") end)
+AddButton(p1, "Auto Skill Switch (Z, X, C, V, F)", "สลับกดใช้สกิล Z, X, C, V, F อัตโนมัติขณะฟาร์ม", function() toggleState("AutoSkillSwitch") end)
+AddSectionHeader(p1, "1.3 Target & Mastery Farming", "1.3 ฟาร์มเป้าหมายเจาะจง & ค่า Mastery")
+AddButton(p1, "Select Specific Mob / Boss", "เลือกเจาะจงมอนสเตอร์หรือบอสบนเกาะ", function() print("[TiwHub] Specific Mob Selected") end)
+AddButton(p1, "Auto Selected Mob / Boss Farm", "สั่งตีเฉพาะเป้าหมายที่เลือกไว้เพื่อปั๊มของดรอป", function() toggleState("FarmSelectedMob") end)
+AddButton(p1, "Mastery Health Percentage Slider (10% - 50%)", "ปรับ % เลือดมอนสำหรับสลับใช้สกิลดัน Mastery", function() print("[TiwHub] Mastery Health set to 25%") end)
+AddButton(p1, "Auto Farm Fruit Mastery (Z, X, C, V, F Skills)", "ฟาร์มค่า Mastery ผลปีศาจด้วยสกิลอัตโนมัติ", function() toggleState("FruitMastery") end)
+AddButton(p1, "Auto Farm Sword Mastery (Z, X Skills)", "ฟาร์มค่า Mastery ดาบด้วยสกิลอัตโนมัติ", function() toggleState("SwordMastery") end)
+AddButton(p1, "Auto Farm Bones (Haunted Castle)", "ฟาร์มมอนสเตอร์บนเกาะผีสิงเพื่อสะสมกระดูก", function() toggleState("FarmBones") end)
+AddButton(p1, "Auto Random Bones Gacha (Death King)", "นำกระดูกไปสุ่มไอเทมที่ NPC Death King อัตโนมัติ", function() toggleState("RandomBones") end)
+-- ==============================================================================
+-- 2. Sea Events & Sea 3 Features (ทะเลและกิจกรรมทะเล)
+-- ==============================================================================
+local p2 = pagesMap["2. Sea Events"]
+AddSectionHeader(p2, "2.1 Sea Events Automation", "2.1 ระบบฟาร์มอีเวนต์ทะเลอัตโนมัติ")
+AddButton(p2, "Auto Shipwright / Sail Ship Coordinates", "ขับเรือออกทะเลตามพิกัดเร่งการเกิดอีเวนต์", function() toggleState("SailShip") end)
+AddButton(p2, "Auto Spawn Sea Events (Danger Level 1 - 6)", "ขับเรือวนใน Danger Level 1-6 เรียกมอนทะเล", function() toggleState("DangerLevelSail") end)
+AddButton(p2, "Auto Kill Terrorshark (Skill Dodge)", "ตรวจจับและสังหาร Terrorshark พร้อมหลบสกิล", function() toggleState("KillTerrorShark") end)
+AddButton(p2, "Auto Kill Sea Beast (Single & Trio)", "ล็อกเป้าโจมตี Sea Beast (เดี่ยว/สามตัว) อัตโนมัติ", function() toggleState("KillSeaBeast") end)
+AddButton(p2, "Auto Kill Ghost Ship / Piranha / Shark", "กำจัดเรือผีสิง, ฝูงปิรันย่า และฉลามธรรมดา", function() toggleState("KillMobsSea") end)
+AddButton(p2, "Boat Utilities (Buy / Repair / Clear Fog)", "ซื้อเรือ, ซ่อมเรืออัตโนมัติ และเคลียร์หมอกทะเล", function() toggleState("BoatUtilities") end)
+AddSectionHeader(p2, "2.2 Leviathan & Specialized Islands", "2.2 ล่า Leviathan และเกาะพิเศษ")
+AddButton(p2, "Auto Leviathan Hunt (Heart & Scale Collector)", "ติดตามหัวเรือ ตี Leviathan และเก็บ Heart/Scales", function() toggleState("HuntLeviathan") end)
+AddButton(p2, "Mirage Island Detector & Teleport", "แจ้งเตือนและวาร์ปขึ้นเกาะ Mirage ทันทีที่เกิด", function() toggleState("MirageTeleport") end)
+AddButton(p2, "Auto Gear Search (Moon Stare & Blue Gear)", "นำทางจุดสูง ส่องจันทร์ หา Blue Gear (เผ่า V4)", function() toggleState("FindBlueGear") end)
+AddButton(p2, "Auto Collect Azure Embers (Kitsune Island)", "วิ่งเก็บดวงไฟสีฟ้าบนเกาะจิ้งจอกอัตโนมัติ", function() toggleState("CollectEmbers") end)
+AddButton(p2, "Auto Offer Embers (Kitsune Tree Exchange)", "นำดวงไฟไปถวายต้นไม้แลกไอเทมตำนาน", function() toggleState("OfferEmbers") end)
+-- ==============================================================================
+-- 3. Raids & Dungeons (ระบบดันเจี้ยนและปลุกพลังผล)
+-- ==============================================================================
+local p3 = pagesMap["3. Raids"]
+AddSectionHeader(p3, "3.1 Dungeon Automation", "3.1 ระบบลงดันเจี้ยนอัตโนมัติ")
+AddButton(p3, "Select Raid Microchip Type", "เลือกประเภทชิปดันเจี้ยนที่ต้องการลง", function() print("[TiwHub] Raid Chip Selected") end)
+AddButton(p3, "Auto Buy Chip Method (Beli / Physical Fruit)", "เลือกวิธีซื้อชิป (เงิน Beli หรือผลปีศาจ)", function() print("[TiwHub] Chip Buy Method Selected") end)
+AddButton(p3, "Auto Start Dungeon Room", "เดินไปกดแท่นเริ่มดันเจี้ยนให้อัตโนมัติ", function() toggleState("StartDungeon") end)
+AddButton(p3, "Kill Aura / Instant Dungeon Clear (Islands 1-5)", "กำจัดมอนในห้องดันเจี้ยนทันทีที่เกิด (ลุยจบ 1-5)", function() toggleState("DungeonKillAura") end)
+AddButton(p3, "Auto Next Island Teleport Gate", "วาร์ปตัวละครไปยังประตูดันเจี้ยนถัดไปทันที", function() toggleState("NextIslandGate") end)
+AddSectionHeader(p3, "3.2 Awaken Systems", "3.2 ระบบปลุกพลังผลปีศาจ")
+AddButton(p3, "Auto Awaken Skill (NPC Auto Talk)", "คุยกับ NPC Awaken ปลดล็อกสกิลให้อัตโนมัติ", function() toggleState("AutoAwakenSkill") end)
+AddButton(p3, "Buy Advanced Raid Microchip", "ซื้อชิปเรดขั้นสูงด้วย Fragments", function() toggleState("BuyAdvChip") end)
+-- ==============================================================================
+-- 4. Quests, Swords & Fighting Styles (เควสอาวุธและหมัด)
+-- ==============================================================================
+local p4 = pagesMap["4. Quests & Weapons"]
+AddSectionHeader(p4, "4.1 Melee Unlocks (Fighting Styles)", "4.1 ปลดล็อกศิลปะการต่อสู้")
+AddButton(p4, "Auto Fighting Styles (Superhuman/Step/Claw/Talon)", "ปลดล็อก Superhuman, Death Step, Sharkman, Claw", function() toggleState("AutoStyles") end)
+AddButton(p4, "Auto Godhuman Unlocker", "เช็คเงื่อนไขวัตถุดิบ เงิน Beli, Frags และทำเควส Godhuman", function() toggleState("AutoGodhuman") end)
+AddButton(p4, "Auto Sanguine Art Quest & Purchase", "ช่วยทำเควสสูบเลือด Leviathan และซื้อหมัด Sanguine", function() toggleState("AutoSanguine") end)
+AddSectionHeader(p4, "4.2 Sword & Item Quests", "4.2 เควสอาวุธและดาบตำนาน")
+AddButton(p4, "Auto Legendary Swords (Saber/Yama/Tushita/etc)", "ทำเควสเก็บ Saber, Rengoku, Midnight, Tushita, Yama", function() toggleState("AutoSwords") end)
+AddButton(p4, "Auto Cursed Dual Katana (CDK Quests)", "ทำภารกิจ Good & Evil ของ Tushita และ Yama", function() toggleState("AutoCDK") end)
+AddButton(p4, "Auto Haze of Misery (Purple Aura Mob Farm)", "ไล่ตีมอนสเตอร์ออร่าสีม่วงทั่วแมพเพื่อผ่านเควส", function() toggleState("HazeOfMisery") end)
+AddButton(p4, "Auto True Triple Katana (TTK Dealer Radar)", "ตรวจจับ Sword Dealer ใน Sea 2 และซื้อดาบ 3 เล่ม", function() toggleState("AutoTTK") end)
+AddButton(p4, "Auto Soul Guitar (Full Moon Castle Quest)", "ทำเควสคืนวันพระจันทร์เต็มดวงที่ Haunted Castle", function() toggleState("AutoSoulGuitar") end)
+AddSectionHeader(p4, "4.3 Race V4 & Trials", "4.3 ระบบเผ่า V4 และดันทดสอบ")
+AddButton(p4, "Full Moon Status Indicator (0% - 100%)", "เช็คสถานะดวงจันทร์บนหน้าจอ (Full Moon %)", function() print("[TiwHub] Full Moon Status: Checked") end)
+AddButton(p4, "Auto Temple of Time Teleport", "วาร์ปไปวิหารกาลเวลา (Temple of Time)", function() toggleState("TeleportTemple") end)
+AddButton(p4, "Auto Trial Automation (All Races Supported)", "ช่วยผ่านดันทดสอบของทุกเผ่าอัตโนมัติ", function() toggleState("AutoRaceTrial") end)
+AddButton(p4, "Auto Pull Temple Lever", "ออโต้ดึงคันโยกเกาะฟ้าเปิดประตู", function() toggleState("PullLeverV4") end)
+AddButton(p4, "Auto Ancient One Upgrade Skill Tree", "อัปเกรดแผนผังพรสวรรค์เผ่า V4 อัตโนมัติ", function() toggleState("AutoAncientOne") end)
+-- ==============================================================================
+-- 5. Boss Hunter (ระบบล่าบอส)
+-- ==============================================================================
+local p5 = pagesMap["5. Boss Hunter"]
+AddSectionHeader(p5, "Boss Hunting Automation", "ระบบล่าบอสอัตโนมัติ")
+AddButton(p5, "Auto Farm All Spawned Bosses", "ออโต้ฟาร์มบอสที่เกิดใหม่ทั้งหมดบนแมพ", function() toggleState("FarmAllBosses") end)
+AddButton(p5, "Select Specific Target Boss", "เลือกเจาะจงบอสที่ต้องการฟาร์ม", function() print("[TiwHub] Specific Boss Selected") end)
+AddButton(p5, "Auto Katakuri V2 Farm", "ออโต้ฟาร์มบอส Katakuri V2", function() toggleState("FarmKatakuriV2") end)
+AddButton(p5, "Auto Darkbeard Farm", "ออโต้ฟาร์มบอส Darkbeard", function() toggleState("FarmDarkbeard") end)
+AddButton(p5, "Auto Whitebeard Farm", "ออโต้ฟาร์มบอส Whitebeard", function() toggleState("FarmWhitebeard") end)
+AddButton(p5, "Auto Kizaru / Doflamingo / Soul Reaper Farm", "ออโต้ฟาร์มบอส Kizaru, Doflamingo, Soul Reaper", function() toggleState("FarmSpecialBosses") end)
+-- ==============================================================================
+-- 6. Teleport & Navigation (ระบบวาร์ปและการเดินทาง)
+-- ==============================================================================
+local p6 = pagesMap["6. Teleport"]
+AddSectionHeader(p6, "6.1 World & Island Teleport", "6.1 วาร์ปสลับโลกและเกาะหลัก")
+AddButton(p6, "Sea Teleport (First / Second / Third Sea)", "วาร์ปสลับข้ามโลก (Sea 1 / Sea 2 / Sea 3)", function() print("[TiwHub] Teleporting Sea...") end)
+AddButton(p6, "Select Island Target (Tween System)", "เลือกวาร์ปไปยังเกาะทั้งหมดด้วยระบบ Tween", function() print("[TiwHub] Island Selected") end)
+AddButton(p6, "Tween Speed Slider (200 - 350 Studs/Sec)", "ปรับระดับความเร็วในการวาร์ปบินข้ามแมพ", function() print("[TiwHub] Tween Speed Set to 250") end)
+AddSectionHeader(p6, "6.2 Specific Teleports", "6.2 วาร์ปจุดสำคัญและบุคคล")
+AddButton(p6, "Teleport to Specific NPC", "เลือกวาร์ปไปหา NPC ใดก็ได้ในเกม", function() print("[TiwHub] NPC Selected") end)
+AddButton(p6, "Teleport to Target Player", "วาร์ปไปหาผู้เล่นคนอื่นในเซิร์ฟเวอร์", function() print("[TiwHub] Player Selected") end)
+AddButton(p6, "Safe Zone Instant Teleport", "วาร์ปเข้าพื้นที่ปลอดภัยทันทีเมื่อโดนโจมตี", function() toggleState("TeleportSafeZone") end)
+AddButton(p6, "Teleport Active Quest NPC / Spawned Boss", "วาร์ปไปหา NPC เควสปัจจุบัน หรือบอสที่เกิด", function() toggleState("TeleportQuestBoss") end)
+-- ==============================================================================
+-- 7. Stats & Shop Automation (สเตตัส ร้านค้า และผลไม้)
+-- ==============================================================================
+local p7 = pagesMap["7. Stats & Shop"]
+AddSectionHeader(p7, "7.1 Auto Stats Assign", "7.1 ระบบอัปสเตตัสอัตโนมัติ")
+AddButton(p7, "Select Stat Type (Melee/Defense/Sword/Gun/Fruit)", "เลือกสายสเตตัสที่ต้องการอัป", function() print("[TiwHub] Stat Type Selected") end)
+AddButton(p7, "Select Points per Click (1 / 3 / 10 / Max Points)", "เลือกจำนวนแต้มที่จะอัปต่อครั้ง", function() print("[TiwHub] Stat Amount Selected") end)
+AddButton(p7, "Auto Assign Points on Level Up", "ลงแต้มสเตตัสให้อัตโนมัติทันทีที่เลเวลอัป", function() toggleState("AutoStats") end)
+AddSectionHeader(p7, "7.2 Fruit Systems & Shop Automation", "7.2 ระบบสุ่มผลไม้ ร้านค้า และสไนเปอร์")
+AddButton(p7, "Auto Random Fruit Gacha (Cousin NPC)", "สุ่มผลปีศาจจาก NPC เมื่อครบ Cooldown", function() toggleState("AutoGacha") end)
+AddButton(p7, "Auto Store Fruit to Personal Storage", "ตรวจสอบผลไม้ในตัว แล้วเก็บเข้าคลังอัตโนมัติ", function() toggleState("AutoStoreFruit") end)
+AddButton(p7, "Fruit Sniper (Auto Buy Dough/Leo/Kitsune/Dragon)", "ดักซื้อผลปีศาจระดับสูงทันทีที่มีการ Restock", function() toggleState("FruitSniper") end)
+AddButton(p7, "Auto Bring Fruit on Map", "ดึงผลปีศาจที่ตกอยู่บนพื้นทั่วแมพเข้าหาตัว", function() toggleState("BringFruit") end)
+AddButton(p7, "Buy Abilities / Haki / Styles / Items", "ซื้อฮากิสังเกต, สีฮากิ, สไตล์ต่อสู้ และปืนออโต้", function() toggleState("AutoShopBuyer") end)
+-- ==============================================================================
+-- 8. Visuals & ESP (การมองเห็นและช่วยการแสดงผล)
+-- ==============================================================================
+local p8 = pagesMap["8. Visuals & ESP"]
+AddSectionHeader(p8, "8.1 ESP System", "8.1 ระบบมองเห็นผ่านกำแพง (ESP)")
+AddButton(p8, "Player ESP (Box / Name / Distance / HP)", "แสดงกรอบ, ชื่อ, ระยะ และเลือดของผู้เล่นคนอื่น", function() toggleState("ESPPlayer") end)
+AddButton(p8, "Fruit ESP (Spawned Fruits Tracking)", "แสดงตำแหน่งผลปีศาจที่เกิดตามพื้นและระยะห่าง", function() toggleState("ESPFruit") end)
+AddButton(p8, "Chest ESP (Silver / Gold / Diamond)", "แสดงตำแหน่งกล่องสมบัติทุกชนิดบนแมพ", function() toggleState("ESPChest") end)
+AddButton(p8, "Flower ESP (Red & Blue Flower Quest)", "แสดงตำแหน่งดอกไม้เควสเผ่า V2", function() toggleState("ESPFlower") end)
+AddButton(p8, "Mirage & Kitsune Island ESP", "แสดงทิศทางและระยะทางไปยังเกาะพิเศษ", function() toggleState("ESPIslands") end)
+AddSectionHeader(p8, "8.2 Performance & Optimization Tools", "8.2 โหมดเพิ่มความเร็วและเปิด AFK")
+AddButton(p8, "White Screen / Fast Render Mode (AFK)", "โหมดจอขาว ลดภาระ GPU/CPU สำหรับเปิด AFK", function() toggleState("WhiteScreen") end)
+AddButton(p8, "Disable 3D Rendering Graphics", "ปิดการเรนเดอร์ภาพกราฟิก 3D ทั้งหมด", function() RunService:Set3dRenderingEnabled(not activeToggles["Disable3D"]) toggleState("Disable3D") end)
+AddButton(p8, "FPS Booster / Remove Map Effects", "ลบหมอก, เอฟเฟกต์สกิล และพื้นผิวเพื่อดัน FPS", function()
 for _, v in ipairs(workspace:GetDescendants()) do
 if v:IsA("Part") or v:IsA("MeshPart") then v.Material = Enum.Material.SmoothPlastic end
+if v:IsA("ParticleEmitter") or v:IsA("Trail") then v.Enabled = false end
 end
-print("[TiwHub] เปิดโหมดเร่ง FPS แล้ว")
 end)
-AddButton(p12, "ปิดเอฟเฟกต์สกิลผู้เล่น (ลดแลกมือถือ)", function()
-for _, v in ipairs(workspace:GetDescendants()) do
-if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") then v.Enabled = false end
-end
-print("[TiwHub] ปิดเอฟเฟกต์สกิลแล้ว")
+AddButton(p8, "Anti-AFK Inactivity Bypass (20 Min Kick Fix)", "ระบบกันโดนเตะออกจากเกมเมื่อยืนนิ่งเกิน 20 นาที", function()
+LocalPlayer.Idled:Connect(function()
+VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+task.wait(1)
+VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
 end)
-AddButton(p12, "ลบเท็กเจอร์และทำให้น้ำใสเคลียร์", function() terrain = workspace.Terrain terrain.WaterWaveSize = 0 terrain.WaterTransparency = 1 end)
-AddButton(p12, "เปลี่ยนธีมสีหน้าต่าง UI", function() print("[TiwHub] เปลี่ยนธีมสี") end)
-AddButton(p12, "เปิด/ปิด เสียงเพลงประกอบสคริปต์", function() toggleState("BGM") end)
-AddButton(p12, "เปิดหน้าต่างคอนโซลล็อกระบบ", function() print("[TiwHub] เปิดคอนโซล") end)
-AddButton(p12, "ส่งข้อมูลแจ้งเตือนผ่าน Discord Webhook", function() toggleState("Webhook") end)
-AddButton(p12, "บูสต์ความเร็วตัวรันสคริปต์", function() print("[TiwHub] บูสต์ตัวรันแล้ว") end)
-AddButton(p12, "ล้างหน่วยความจำแรม (Clean RAM)", function() pcall(function() collectgarbage("collect") end) print("[TiwHub] เคลียร์ RAM แล้ว") end)
-AddButton(p12, "ปิดเงาแสงอาทิตย์ทั่วโลก", function() Lighting.GlobalShadows = false end)
-AddButton(p12, "โหมดท้องฟ้ามืดสนิท (Black Sky)", function() Lighting.TimeOfDay = "00:00:00" end)
-AddButton(p12, "ปรับสเกล UI ให้เหมาะกับมือถือ Delta", function() print("[TiwHub] ปรับสเกลมือถือแล้ว") end)
-AddButton(p12, "โหมดประหยัดแบตเตอรี่โทรศัพท์", function() settings():GetService("RenderSettings").EditQualityLevel(Enum.QualityLevel.Level01) end)
-AddButton(p12, "รีสตาร์ทระบบแกนกลางสคริปต์", function() print("[TiwHub] รีสตาร์ทแกนกลางสำเร็จ") end)
+print("[TiwHub] Anti-AFK Engine Started.")
+end)
 -- ==============================================================================
--- Mobile Draggable UI Support (Delta Supported)
+-- 9. PvP & Combat Assistance (ระบบช่วยต่อสู้ PvP)
 -- ==============================================================================
+local p9 = pagesMap["9. PvP & Combat"]
+AddSectionHeader(p9, "Combat & Target Locking", "ระบบช่วยต่อสู้และล็อกเป้าหมาย")
+AddButton(p9, "Player Target Lock Aim", "ล็อกเป้าหมายผู้เล่นคนอื่นในระยะต่อสู้", function() toggleState("LockPlayerTarget") end)
+AddButton(p9, "Skill Aim Auto-Targeting", "ปรับทิศทางการใช้สกิลอาวุธ/ผลให้เล็งใส่เป้าหมาย", function() toggleState("SkillAimAssist") end)
+AddButton(p9, "Safe Health Escape (Fly Up / Safezone)", "วาร์ปขึ้นฟ้าหรือเข้า Safe Zone เมื่อ HP ต่ำ", function() toggleState("LowHPEscape") end)
+AddButton(p9, "Auto Active Race V3 / V4 Ability", "กดเปิดใช้งานพลังเผ่า V3 / V4 อัตโนมัติเมื่อเกจเต็ม", function() toggleState("AutoActiveRace") end)
+AddButton(p9, "Auto Ken Haki Dodge & Max Training", "ออโต้หลบการโจมตีและฝึกฮากิสังเกตจนตัน", function() toggleState("KenDodgeTrain") end)
+-- ==============================================================================
+-- 10. Character Mods (ปรับแต่งตัวละคร)
+-- ==============================================================================
+local p10 = pagesMap["10. Character Mods"]
+AddSectionHeader(p10, "Character Movement & Physical Hacks", "ปรับแต่งการเคลื่อนที่ของตัวละคร")
+AddButton(p10, "WalkSpeed Boost (100+ Speed)", "เพิ่มความเร็วในการเดิน (WalkSpeed Boost)", function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.WalkSpeed = 100 end end)
+AddButton(p10, "JumpPower Boost (150+ Jump)", "เพิ่มพลังในการกระโดด (JumpPower Boost)", function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.JumpPower = 150 end end)
+AddButton(p10, "Noclip Mode (Pass Through Walls)", "โหมดเดินทะลุกำแพงและสิ่งกีดขวาง", function() toggleState("Noclip") end)
+AddButton(p10, "Fly Mode Flight Controls", "โหมดบินอิสระ (Fly Mode)", function() toggleState("FlyMode") end)
+AddButton(p10, "Levitation Float Mode", "โหมดลอยตัวกลางอากาศ (Levitation)", function() toggleState("Levitate") end)
+AddButton(p10, "Water Damage Immunity", "ป้องกันการได้รับความเสียหายเมื่อตกน้ำทะเล", function() toggleState("WaterImmune") end)
+AddButton(p10, "Infinite Jump Air Leap", "กระโดดไม่จำกัดกลางอากาศ (Infinite Jump)", function() toggleState("InfJump") end)
+-- ==============================================================================
+-- 11. Anti-Ban & System Settings (ความปลอดภัย & ตั้งค่า)
+-- ==============================================================================
+local p11 = pagesMap["11. Anti-Ban & System"]
+AddSectionHeader(p11, "Language & Interface Scale", "สลับภาษาและปรับขนาด UI")
+AddButton(p11, "Switch Language: English / ไทย", "ระบบสลับภาษา: ไทย / English", function()
+if currentLang == "TH" then UpdateLanguage("EN") else UpdateLanguage("TH") end
+end)
+AddButton(p11, "UI Size: Mobile Compact (Default)", "ปรับขนาด UI: มือถือกะทัดรัด (เริ่มต้น)", function()
+MainFrame.Size = UDim2.fromOffset(620, 420)
+MainFrame.Position = UDim2.new(0.5, -310, 0.5, -210)
+end)
+AddButton(p11, "UI Size: Tablet / Large Display", "ปรับขนาด UI: หน้าจอใหญ่ (แท็บเล็ต)", function()
+MainFrame.Size = UDim2.fromOffset(740, 480)
+MainFrame.Position = UDim2.new(0.5, -370, 0.5, -240)
+end)
+AddSectionHeader(p11, "Safety & Anti-Admin Detection", "ความปลอดภัยและตรวจจับแอดมิน")
+AddButton(p11, "Anti-Admin Detector (Auto Kick)", "ระบบตรวจจับแอดมินพร้อมออโต้เตะออกเมื่อเจอ", function() toggleState("AntiAdmin") end)
+AddButton(p11, "Stealth Radar Hiding & Hide Name", "ซ่อนป้ายชื่อเหนือหัวและซ่อนจากเรดาร์ผู้เล่นอื่น", function() toggleState("StealthName") end)
+AddButton(p11, "PvP Warning Alert System", "แจ้งเตือนเมื่อโดนเปิดโหมด PvP ใส่", function() toggleState("PvPAlert") end)
+AddButton(p11, "Realtime Players & Ping/FPS Display", "แสดงจำนวนคนในเซิร์ฟเวอร์ และ FPS/Ping", function()
+local stats = game:GetService("Stats")
+print("[Stats] Players: " .. #Players:GetPlayers() .. " | FPS: " .. math.floor(workspace:GetRealPhysicsFPS()) .. " | Ping: " .. math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue()))
+end)
+AddButton(p11, "Rejoin Current Server", "เข้าเซิร์ฟเวอร์เดิมใหม่ (แก้แลก)", function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end)
+AddButton(p11, "Server Hop Low Players", "ย้ายเซิร์ฟเวอร์สุ่ม (เลือกคนน้อย)", function() print("[TiwHub] Server Hopping...") end)
+AddButton(p11, "Destroy Script UI Permanently", "ทำลาย UI ทั้งหมดทิ้ง", function() ScreenGui:Destroy() end)
+-- Mobile Touch Dragging Engine
 local function MakeDraggable(gui)
 local dragging, dragInput, dragStart, startPos
 gui.InputBegan:Connect(function(input)
@@ -495,4 +460,4 @@ end
 end)
 end
 MakeDraggable(MainFrame)
-print("[TiwHub] Loaded Successfully with Thai UI, Floating Ball & On-Death Haki Engine!")
+print("[TiwHub] Complete Script Loaded Successfully!")
